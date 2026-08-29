@@ -1,0 +1,856 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@saeed.dev",
+      "password": "$2b$10$NL.MOD7ltXUTZLDxKvtF7OLRjIrHzRONy.1vdxMf1Lu/ZW3IJSmm2",
+      "name": "Muhammed Saeed",
+      "role": "admin",
+      "created_at": "2026-08-29T14:33:08.910Z"
+    }
+  ],
+  "portfolio_settings": [
+    {
+      "id": 1,
+      "developer_name": "Muhammed Saeed",
+      "logo_text": "Muhammed.dev",
+      "hero_headline": "Building Scalable Digital Experiences",
+      "hero_subtitle": "Full-Stack Developer & Creative Technologist",
+      "bio": "Full-Stack Developer passionate about building modern, scalable and creative digital experiences. I enjoy turning ideas into functional applications and exploring technologies across web development, databases, analytics, IoT and AI.",
+      "about_heading": "Engineering Modern, Scalable Web Applications",
+      "about_bio": "Full-Stack Developer passionate about building modern, scalable and creative digital experiences. I enjoy turning ideas into functional applications and exploring technologies across web development, databases, analytics, IoT and AI.",
+      "about_description": "With a strong foundation in modern frontend architectures, backend APIs, and cloud infrastructure, I build high-performance web products that deliver exceptional user experiences.",
+      "profile_image": "",
+      "email": "patel.muhammed.saeedahmed@gmail.com",
+      "phone": "Currently Unavailable ",
+      "location": "Bharuch, Gujarat, India",
+      "resume_url": "#",
+      "github_url": "https://github.com",
+      "linkedin_url": "https://linkedin.com",
+      "instagram_url": "https://instagram.com",
+      "hire_me_text": "Hire Me",
+      "years_experience": 5,
+      "projects_completed": 24,
+      "satisfied_clients": 18,
+      "created_at": "2026-08-29T14:33:08.911Z",
+      "updated_at": "2026-08-29T16:04:28.109Z"
+    }
+  ],
+  "projects": [
+    {
+      "id": 1,
+      "title": "AI Workflow Studio",
+      "slug": "ai-workflow-studio",
+      "description": "Autonomous AI agents orchestration dashboard with real-time streaming workflows, node canvas, and model analytics.",
+      "full_description": "Comprehensive workflow automation platform built with modern React, TypeScript, and Python AI core. Features real-time multi-agent cooperation, canvas builder, and distributed queue processing.",
+      "image_url": "/uploads/project-ai-studio.jpg",
+      "category": "AI",
+      "technologies": "[\"React\",\"TypeScript\",\"Node.js\",\"Python\",\"Tailwind CSS\"]",
+      "github_url": "https://github.com",
+      "live_url": "https://example.com",
+      "is_featured": 1,
+      "display_order": 1,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 2,
+      "title": "Nexus FinTech Dashboard",
+      "slug": "nexus-fintech-dashboard",
+      "description": "High-frequency transaction monitor with live analytics, cryptocurrency swaps, and automated risk scoring.",
+      "full_description": "Ultra-low latency financial analytics dashboard with WebGL charts, multi-currency support, and biometric-grade JWT authentication.",
+      "image_url": "/uploads/project-fintech.jpg",
+      "category": "React",
+      "technologies": "[\"React\",\"TypeScript\",\"Recharts\",\"Tailwind CSS\",\"PostgreSQL\"]",
+      "github_url": "https://github.com",
+      "live_url": "https://example.com",
+      "is_featured": 1,
+      "display_order": 2,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 3,
+      "title": "CloudMesh IoT Fleet Manager",
+      "slug": "cloudmesh-iot-fleet-manager",
+      "description": "Industrial IoT device management platform monitoring 10,000+ smart edge nodes with anomaly detection.",
+      "full_description": "Real-time telemetry aggregation platform using MQTT, Node.js microservices, and React glassmorphic telemetry graphs.",
+      "image_url": "/uploads/project-iot.jpg",
+      "category": "IoT",
+      "technologies": "[\"Node.js\",\"React\",\"MQTT\",\"MySQL\",\"Docker\"]",
+      "github_url": "https://github.com",
+      "live_url": "https://example.com",
+      "is_featured": 1,
+      "display_order": 3,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    }
+  ],
+  "skills": [
+    {
+      "id": 1,
+      "name": "React",
+      "category": "Frontend",
+      "icon": "Atom",
+      "proficiency": 95,
+      "display_order": 1,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 2,
+      "name": "TypeScript",
+      "category": "Frontend",
+      "icon": "FileCode2",
+      "proficiency": 90,
+      "display_order": 2,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 3,
+      "name": "JavaScript",
+      "category": "Frontend",
+      "icon": "Code",
+      "proficiency": 95,
+      "display_order": 3,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 4,
+      "name": "HTML / CSS",
+      "category": "Frontend",
+      "icon": "Layout",
+      "proficiency": 95,
+      "display_order": 4,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 5,
+      "name": "Node.js",
+      "category": "Backend",
+      "icon": "Server",
+      "proficiency": 92,
+      "display_order": 5,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 6,
+      "name": "Python",
+      "category": "Backend",
+      "icon": "Terminal",
+      "proficiency": 88,
+      "display_order": 6,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 7,
+      "name": "PHP",
+      "category": "Backend",
+      "icon": "Globe",
+      "proficiency": 85,
+      "display_order": 7,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 8,
+      "name": "MySQL",
+      "category": "Database",
+      "icon": "Database",
+      "proficiency": 90,
+      "display_order": 8,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 9,
+      "name": "Git & GitHub",
+      "category": "Tools",
+      "icon": "GitBranch",
+      "proficiency": 92,
+      "display_order": 9,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 10,
+      "name": "WordPress",
+      "category": "CMS",
+      "icon": "Cpu",
+      "proficiency": 85,
+      "display_order": 10,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 1788015991783,
+      "created_at": "2026-08-29T15:06:31.050Z",
+      "name": "MongoDB",
+      "category": "Database",
+      "icon": "Code",
+      "proficiency": 100,
+      "display_order": 11
+    }
+  ],
+  "experience": [
+    {
+      "id": 1,
+      "company": "Parul Consultancy Service",
+      "position": "Intern Full-Stack Developer",
+      "location": "Parul University, Vadodara, Gujarat, India",
+      "start_date": "2026-08-01",
+      "end_date": "",
+      "is_current": 1,
+      "description": "Leading the development of enterprise SaaS platforms, modernizing legacy architectures into high-performance React and Node.js microservices.",
+      "technologies": "[\"React\",\"TypeScript\",\"Node.js\",\"MySQL\",\"Docker\"]",
+      "logo_url": "",
+      "display_order": 1,
+      "created_at": "2026-08-29T14:33:08.911Z",
+      "updated_at": "2026-08-29T15:09:18.063Z"
+    },
+    {
+      "id": 2,
+      "company": "Apex Interactive Systems",
+      "position": "Full-Stack Developer",
+      "location": "Remote",
+      "start_date": "2022-03-01",
+      "end_date": "2023-12-31",
+      "is_current": 0,
+      "description": "Engineered custom web applications, RESTful API gateways, and interactive analytics dashboards with real-time data streaming.",
+      "technologies": "[\"React\",\"Node.js\",\"Express\",\"MySQL\",\"Tailwind CSS\"]",
+      "logo_url": "",
+      "display_order": 2,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 3,
+      "company": "Quantum Byte Tech",
+      "position": "Frontend & UI Developer",
+      "location": "New York, NY",
+      "start_date": "2020-06-01",
+      "end_date": "2022-02-28",
+      "is_current": 0,
+      "description": "Crafted responsive, high-fidelity user interfaces, design systems, and client-side performance optimizations for global clients.",
+      "technologies": "[\"JavaScript\",\"React\",\"HTML5\",\"CSS3\",\"WordPress\"]",
+      "logo_url": "",
+      "display_order": 3,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    }
+  ],
+  "education": [
+    {
+      "id": 1,
+      "institution": "University of Engineering & Technology",
+      "degree": "Bachelor of Science",
+      "course": "Computer Science & Software Engineering",
+      "start_year": 2016,
+      "end_year": 2020,
+      "description": "Specialized in Distributed Systems, Database Management Systems, Data Structures, and Software Architecture.",
+      "logo_url": "",
+      "display_order": 1,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 2,
+      "institution": "Tech Institute of Advanced Computing",
+      "degree": "Professional Certification",
+      "course": "Full-Stack Cloud & Modern Web Architectures",
+      "start_year": 2021,
+      "end_year": 2021,
+      "description": "Intensive certification covering microservices, cloud deployments, modern frontend frameworks, and security best practices.",
+      "logo_url": "",
+      "display_order": 2,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    }
+  ],
+  "services": [
+    {
+      "id": 1,
+      "title": "Full-Stack Web Development",
+      "description": "End-to-end modern web applications built with React, Node.js, and robust relational databases engineered for speed and scale.",
+      "icon": "Layers",
+      "display_order": 1,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 2,
+      "title": "UI/UX Engineering & Design",
+      "description": "Pixel-perfect, responsive interfaces featuring dark aesthetics, glassmorphism, micro-animations, and fluid responsive design.",
+      "icon": "Layout",
+      "display_order": 2,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 3,
+      "title": "Database Architecture & APIs",
+      "description": "High-performance SQL schema design, query optimization, secure RESTful & GraphQL APIs with JWT authentication.",
+      "icon": "Database",
+      "display_order": 3,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 4,
+      "title": "IoT & Telemetry Dashboards",
+      "description": "Connecting smart devices and sensors to real-time interactive monitoring dashboards with instant anomaly alerts.",
+      "icon": "Cpu",
+      "display_order": 4,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 5,
+      "title": "WordPress & Headless CMS",
+      "description": "Custom WordPress theme & plugin development, headless CMS integrations with Next.js/React frontends.",
+      "icon": "Globe",
+      "display_order": 5,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 6,
+      "title": "Performance & Security Optimization",
+      "description": "Audit and acceleration of web apps, Lighthouse 95+ score delivery, caching strategies, and security hardening.",
+      "icon": "ShieldCheck",
+      "display_order": 6,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    }
+  ],
+  "social_links": [
+    {
+      "id": 1,
+      "platform": "GitHub",
+      "url": "https://github.com",
+      "icon": "Github",
+      "display_order": 1,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 2,
+      "platform": "LinkedIn",
+      "url": "https://linkedin.com",
+      "icon": "Linkedin",
+      "display_order": 2,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 3,
+      "platform": "Instagram",
+      "url": "https://instagram.com",
+      "icon": "Instagram",
+      "display_order": 3,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    },
+    {
+      "id": 4,
+      "platform": "Twitter / X",
+      "url": "https://x.com",
+      "icon": "Twitter",
+      "display_order": 4,
+      "created_at": "2026-08-29T14:33:08.911Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": 1788014587285,
+      "created_at": "2026-08-29T14:43:06.426Z",
+      "name": "Sarah Connor",
+      "email": "sarah@skynet-defense.com",
+      "subject": "Autonomous AI Systems Architect Project",
+      "message": "Hello Saeed, we would like to hire you for leading our high-scale AI infrastructure platform.",
+      "is_read": 1,
+      "updated_at": "2026-08-29T15:12:01.267Z"
+    },
+    {
+      "id": 1788017163685,
+      "created_at": "2026-08-29T15:26:03.502Z",
+      "name": "Dr. Evelyn Reed",
+      "email": "evelyn@biocore-ai.com",
+      "subject": "Consulting on AI Architecture",
+      "message": "Hello Saeed, we would like to hire your services for our next quarterly milestone.",
+      "is_read": 1,
+      "updated_at": "2026-08-29T15:37:57.143Z"
+    },
+    {
+      "id": 1788017363355,
+      "created_at": "2026-08-29T15:29:22.404Z",
+      "name": "nimmu HOD",
+      "email": "uni3ymammu@gmail.com",
+      "subject": "Internship Offer",
+      "message": "1 cr package for 3 months Internship",
+      "is_read": 1,
+      "updated_at": "2026-08-29T15:38:47.409Z"
+    }
+  ],
+  "analytics": [
+    {
+      "id": 1788013991823,
+      "created_at": "2026-08-29T14:33:11.763Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "node"
+    },
+    {
+      "id": 1788014432820,
+      "created_at": "2026-08-29T14:40:32.665Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "node"
+    },
+    {
+      "id": 1788014586210,
+      "created_at": "2026-08-29T14:43:05.938Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "node"
+    },
+    {
+      "id": 1788014587465,
+      "created_at": "2026-08-29T14:43:06.522Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "node"
+    },
+    {
+      "id": 1788014586627,
+      "created_at": "2026-08-29T14:43:06.545Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "node"
+    },
+    {
+      "id": 1788015460204,
+      "created_at": "2026-08-29T14:57:40.124Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "node"
+    },
+    {
+      "id": 1788015522127,
+      "created_at": "2026-08-29T14:58:41.792Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "node"
+    },
+    {
+      "id": 1788015550012,
+      "created_at": "2026-08-29T14:59:09.370Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788015549836,
+      "created_at": "2026-08-29T14:59:09.373Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788015621765,
+      "created_at": "2026-08-29T15:00:21.547Z",
+      "event_type": "project_click",
+      "page": "Nexus FinTech Dashboard (Live Demo)",
+      "project_id": 2,
+      "referrer": "http://localhost:5173/"
+    },
+    {
+      "id": 1788015890977,
+      "created_at": "2026-08-29T15:04:50.280Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788015991265,
+      "created_at": "2026-08-29T15:06:31.063Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016158270,
+      "created_at": "2026-08-29T15:09:18.078Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016167326,
+      "created_at": "2026-08-29T15:09:27.286Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016167369,
+      "created_at": "2026-08-29T15:09:27.289Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016179814,
+      "created_at": "2026-08-29T15:09:39.311Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016179841,
+      "created_at": "2026-08-29T15:09:39.313Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016422668,
+      "created_at": "2026-08-29T15:13:42.299Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016426399,
+      "created_at": "2026-08-29T15:13:45.931Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016440422,
+      "created_at": "2026-08-29T15:13:59.744Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016440097,
+      "created_at": "2026-08-29T15:13:59.747Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016599737,
+      "created_at": "2026-08-29T15:16:39.015Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016601405,
+      "created_at": "2026-08-29T15:16:40.782Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016600823,
+      "created_at": "2026-08-29T15:16:40.785Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016657031,
+      "created_at": "2026-08-29T15:17:36.781Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016657340,
+      "created_at": "2026-08-29T15:17:36.785Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016679900,
+      "created_at": "2026-08-29T15:17:59.456Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016681269,
+      "created_at": "2026-08-29T15:18:01.078Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016681182,
+      "created_at": "2026-08-29T15:18:01.082Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016777972,
+      "created_at": "2026-08-29T15:19:37.806Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016778664,
+      "created_at": "2026-08-29T15:19:37.808Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016864506,
+      "created_at": "2026-08-29T15:21:03.696Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016869453,
+      "created_at": "2026-08-29T15:21:08.561Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788016868689,
+      "created_at": "2026-08-29T15:21:08.564Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788017164289,
+      "created_at": "2026-08-29T15:26:03.483Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "node"
+    },
+    {
+      "id": 1788017175677,
+      "created_at": "2026-08-29T15:26:15.563Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "node"
+    },
+    {
+      "id": 1788017191357,
+      "created_at": "2026-08-29T15:26:30.897Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788017191588,
+      "created_at": "2026-08-29T15:26:30.902Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788017248221,
+      "created_at": "2026-08-29T15:27:27.617Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788017261943,
+      "created_at": "2026-08-29T15:27:41.630Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788017265626,
+      "created_at": "2026-08-29T15:27:44.906Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788017265278,
+      "created_at": "2026-08-29T15:27:44.909Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788017534583,
+      "created_at": "2026-08-29T15:32:13.822Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788017534242,
+      "created_at": "2026-08-29T15:32:13.826Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788017851051,
+      "created_at": "2026-08-29T15:37:30.121Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788017853446,
+      "created_at": "2026-08-29T15:37:32.702Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788017932042,
+      "created_at": "2026-08-29T15:38:51.189Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788017932095,
+      "created_at": "2026-08-29T15:38:51.192Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788018109643,
+      "created_at": "2026-08-29T15:41:49.422Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788018109917,
+      "created_at": "2026-08-29T15:41:49.425Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788019361088,
+      "created_at": "2026-08-29T16:02:41.072Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788019361979,
+      "created_at": "2026-08-29T16:02:41.074Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788019371031,
+      "created_at": "2026-08-29T16:02:51.002Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788019371021,
+      "created_at": "2026-08-29T16:02:51.005Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788019469041,
+      "created_at": "2026-08-29T16:04:28.121Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788019477564,
+      "created_at": "2026-08-29T16:04:36.618Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788019477478,
+      "created_at": "2026-08-29T16:04:36.621Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788019493011,
+      "created_at": "2026-08-29T16:04:52.677Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788019493433,
+      "created_at": "2026-08-29T16:04:52.683Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "http://localhost:5173/",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36 Edg/152.0.0.0"
+    },
+    {
+      "id": 1788020127834,
+      "created_at": "2026-08-29T16:15:27.155Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "node"
+    }
+  ]
+}
