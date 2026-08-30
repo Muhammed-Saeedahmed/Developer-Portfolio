@@ -293,7 +293,6 @@ async function tryConnectPostgres(databaseUrl, host, port, user, password, dbNam
     (host && (host === 'localhost' || host === '127.0.0.1' || host.endsWith('.internal') || (host.startsWith('dpg-') && !host.includes('.render.com'))))
   );
 
-  // SSL candidates to try: cloud providers (Render, Supabase, Neon, Railway) work best with { rejectUnauthorized: false }
   const sslModesToTry = isInternal
     ? [{ rejectUnauthorized: false }, false]
     : [{ rejectUnauthorized: false }, false, true];
@@ -324,7 +323,6 @@ async function tryConnectPostgres(databaseUrl, host, port, user, password, dbNam
           };
 
       pool = new PgPool(config);
-      // Handle idle client errors gracefully without crashing the app
       pool.on('error', (err) => {
         console.error('[PostgreSQL Pool Error]', err.message);
       });
@@ -344,14 +342,183 @@ async function tryConnectPostgres(databaseUrl, host, port, user, password, dbNam
 }
 
 /**
+ * Try connecting to MySQL with adaptive SSL negotiation, auto-reconnect, and timeout guards
+ */
+async function tryConnectMySql(databaseUrl, host, port, user, password, dbName) {
+  let mysqlHost = host;
+  let mysqlPort = Number(port || 3306);
+  let mysqlUser = user || 'root';
+  let mysqlPassword = password || '';
+  let mysqlDb = dbName || 'portfolio_cms_db';
+
+  if (databaseUrl && (databaseUrl.startsWith('mysql://') || databaseUrl.startsWith('mysql2://'))) {
+    try {
+      const parsed = new URL(databaseUrl);
+      mysqlHost = parsed.hostname;
+      mysqlPort = Number(parsed.port || 3306);
+      mysqlUser = decodeURIComponent(parsed.username || 'root');
+      mysqlPassword = decodeURIComponent(parsed.password || '');
+      mysqlDb = parsed.pathname.replace(/^\//, '') || 'portfolio_cms_db';
+    } catch (e) {
+      console.warn('[DB Warning] Failed to parse DATABASE_URL as URL:', e.message);
+    }
+  }
+
+  const isInternal = Boolean(
+    !mysqlHost ||
+    mysqlHost === 'localhost' ||
+    mysqlHost === '127.0.0.1' ||
+    mysqlHost.endsWith('.internal')
+  );
+
+  const sslCandidates = process.env.DB_SSL === 'false'
+    ? [undefined]
+    : (process.env.DB_SSL === 'true' || !isInternal)
+      ? [{ rejectUnauthorized: false }, undefined]
+      : [undefined, { rejectUnauthorized: false }];
+
+  let lastError = null;
+
+  for (const sslSetting of sslCandidates) {
+    let pool = null;
+    try {
+      if (isInternal) {
+        try {
+          const rootConn = await mysql.createConnection({
+            host: mysqlHost || 'localhost',
+            user: mysqlUser,
+            password: mysqlPassword,
+            port: mysqlPort,
+            connectTimeout: 5000,
+            ssl: sslSetting
+          });
+          await rootConn.query(`CREATE DATABASE IF NOT EXISTS \`${mysqlDb}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
+          await rootConn.end();
+        } catch (e) {
+          // Ignored if user lacks root/create db permission on managed cloud MySQL
+        }
+      }
+
+      pool = mysql.createPool({
+        host: mysqlHost || 'localhost',
+        user: mysqlUser,
+        password: mysqlPassword,
+        database: mysqlDb,
+        port: mysqlPort,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        connectTimeout: 15000,
+        enableKeepAlive: true,
+        keepAliveInitialDelay: 10000,
+        ssl: sslSetting
+      });
+
+      // Verify connection
+      await pool.query('SELECT 1');
+      console.log(`[DB] Connected successfully to MySQL Database (Host: "${mysqlHost || 'localhost'}:${mysqlPort}", Database: "${mysqlDb}", SSL: ${Boolean(sslSetting)}).`);
+      return { pool, mysqlHost, mysqlPort, mysqlUser, mysqlDb };
+    } catch (err) {
+      lastError = err;
+      if (pool) {
+        try { await pool.end(); } catch (e) {}
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+/**
+ * Safe, non-destructive schema evolution for MySQL.
+ * Checks INFORMATION_SCHEMA.COLUMNS and adds missing columns without altering or resetting existing data.
+ */
+async function ensureMySqlColumns() {
+  const schemaUpdates = [
+    {
+      table: 'portfolio_settings',
+      columns: [
+        { name: 'years_experience', type: 'INT DEFAULT 5' },
+        { name: 'projects_completed', type: 'INT DEFAULT 24' },
+        { name: 'satisfied_clients', type: 'INT DEFAULT 18' },
+        { name: 'about_heading', type: 'VARCHAR(255)' },
+        { name: 'about_bio', type: 'TEXT' },
+        { name: 'about_description', type: 'TEXT' },
+        { name: 'hire_me_text', type: "VARCHAR(100) DEFAULT 'Hire Me'" },
+        { name: 'logo_text', type: "VARCHAR(100) DEFAULT 'MS.dev'" }
+      ]
+    },
+    {
+      table: 'projects',
+      columns: [
+        { name: 'status', type: "VARCHAR(50) DEFAULT 'Completed'" },
+        { name: 'full_description', type: 'TEXT' },
+        { name: 'is_featured', type: 'INT DEFAULT 1' },
+        { name: 'display_order', type: 'INT DEFAULT 1' }
+      ]
+    },
+    {
+      table: 'experience',
+      columns: [
+        { name: 'is_current', type: 'INT DEFAULT 0' },
+        { name: 'technologies', type: 'TEXT' },
+        { name: 'logo_url', type: 'VARCHAR(500)' },
+        { name: 'display_order', type: 'INT DEFAULT 1' }
+      ]
+    },
+    {
+      table: 'education',
+      columns: [
+        { name: 'course', type: 'VARCHAR(255)' },
+        { name: 'logo_url', type: 'VARCHAR(500)' },
+        { name: 'display_order', type: 'INT DEFAULT 1' }
+      ]
+    },
+    {
+      table: 'uploads',
+      columns: [
+        { name: 'original_name', type: 'VARCHAR(255)' },
+        { name: 'mime_type', type: 'VARCHAR(100)' },
+        { name: 'file_data', type: 'LONGTEXT' },
+        { name: 'size', type: 'INT DEFAULT 0' }
+      ]
+    }
+  ];
+
+  for (const update of schemaUpdates) {
+    try {
+      const [existing] = await dbClient.query(
+        `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?`,
+        [update.table]
+      );
+      const existingCols = new Set((existing || []).map(c => (c.COLUMN_NAME || c.column_name || '').toLowerCase()));
+      for (const col of update.columns) {
+        if (!existingCols.has(col.name.toLowerCase())) {
+          try {
+            await dbClient.query(`ALTER TABLE \`${update.table}\` ADD COLUMN \`${col.name}\` ${col.type}`);
+            console.log(`[DB Schema Migration] Added column "${col.name}" to table "${update.table}".`);
+          } catch (e) {
+            console.warn(`[DB Schema Migration] Note adding column "${col.name}":`, e.message);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn(`[DB Schema Migration] Table check for "${update.table}" skipped:`, err.message);
+    }
+  }
+}
+
+/**
  * Initialize Database connection and verify tables
  */
 export async function initDatabase() {
   loadJsonDb();
 
-  const databaseUrl = (process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.MYSQL_URL || '').trim();
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true' || process.env.STRICT_DB === 'true';
+
+  const databaseUrl = (process.env.DATABASE_URL || process.env.MYSQL_URL || process.env.POSTGRES_URL || '').trim();
   const isPostgresUrl = databaseUrl && (databaseUrl.startsWith('postgres://') || databaseUrl.startsWith('postgresql://'));
-  const isMysqlUrl = databaseUrl && databaseUrl.startsWith('mysql://');
+  const isMysqlUrl = databaseUrl && (databaseUrl.startsWith('mysql://') || databaseUrl.startsWith('mysql2://'));
 
   const host = process.env.DB_HOST;
   const user = process.env.DB_USER;
@@ -360,7 +527,37 @@ export async function initDatabase() {
   const dbName = process.env.DB_NAME || 'portfolio_cms_db';
   const forcePostgres = process.env.DB_TYPE === 'postgres' || Boolean(process.env.PGHOST);
 
-  // --- 1. Try PostgreSQL Connection ---
+  let lastConnectionError = null;
+
+  // --- 1. Try MySQL Connection (Primary Persistent Engine) ---
+  if (isMysqlUrl || host || user || process.env.DB_TYPE === 'mysql' || (!isPostgresUrl && !forcePostgres)) {
+    const maxRetries = (databaseUrl || isProduction) ? 5 : 2;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`[DB] Connecting to MySQL Database (${databaseUrl ? maskConnectionString(databaseUrl) : `${host || 'localhost'}:${port || 3306}`}) [Attempt ${attempt}/${maxRetries}]...`);
+        const { pool } = await tryConnectMySql(databaseUrl, host, port, user, password, dbName);
+        dbClient = pool;
+        dbDriver = 'mysql';
+
+        await createMySqlTables();
+        await ensureMySqlColumns();
+        await seedDatabaseTables();
+        return;
+      } catch (err) {
+        lastConnectionError = err;
+        console.warn(`[DB Warning] MySQL attempt ${attempt} failed: ${err.message}`);
+        if (attempt < maxRetries) {
+          const delayMs = attempt * 1500;
+          console.log(`[DB] Retrying MySQL connection in ${delayMs}ms...`);
+          await new Promise(r => setTimeout(r, delayMs));
+        } else {
+          console.error(`[DB Error] MySQL connection failed after ${maxRetries} attempts.`);
+        }
+      }
+    }
+  }
+
+  // --- 2. Try PostgreSQL Connection (Secondary Persistent Engine if explicitly configured) ---
   if (isPostgresUrl || forcePostgres) {
     const maxRetries = databaseUrl ? 5 : 2;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -374,10 +571,11 @@ export async function initDatabase() {
         await seedDatabaseTables();
         return;
       } catch (err) {
+        lastConnectionError = err;
         console.warn(`[DB Warning] PostgreSQL attempt ${attempt} failed: ${err.message}`);
         if (attempt < maxRetries) {
           const delayMs = attempt * 1500;
-          console.log(`[DB] Retrying connection in ${delayMs}ms...`);
+          console.log(`[DB] Retrying PostgreSQL connection in ${delayMs}ms...`);
           await new Promise(r => setTimeout(r, delayMs));
         } else {
           console.error(`[DB Error] PostgreSQL connection failed after ${maxRetries} attempts.`);
@@ -386,68 +584,33 @@ export async function initDatabase() {
     }
   }
 
-  // --- 2. Try MySQL Connection ---
-  if (isMysqlUrl || host || user) {
-    try {
-      const mysqlHost = host || (isMysqlUrl ? new URL(databaseUrl).hostname : 'localhost');
-      const mysqlPort = Number(port || (isMysqlUrl ? new URL(databaseUrl).port || 3306 : 3306));
-      const mysqlUser = user || (isMysqlUrl ? new URL(databaseUrl).username : 'root');
-      const mysqlPassword = password || (isMysqlUrl ? decodeURIComponent(new URL(databaseUrl).password) : '');
-      const mysqlDb = dbName || (isMysqlUrl ? new URL(databaseUrl).pathname.replace('/', '') : 'portfolio_cms_db');
-
-      console.log(`[DB] Connecting to MySQL Database on ${mysqlHost}:${mysqlPort} (database: "${mysqlDb}")...`);
-      
-      // Auto create database if local/supported
-      try {
-        const rootConn = await mysql.createConnection({
-          host: mysqlHost,
-          user: mysqlUser,
-          password: mysqlPassword,
-          port: mysqlPort,
-          connectTimeout: 3000,
-          ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
-        });
-        await rootConn.query(`CREATE DATABASE IF NOT EXISTS \`${mysqlDb}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
-        await rootConn.end();
-      } catch (e) {
-        // Ignored if user lacks root/create db permission on managed cloud MySQL
-      }
-
-      const pool = mysql.createPool({
-        host: mysqlHost,
-        user: mysqlUser,
-        password: mysqlPassword,
-        database: mysqlDb,
-        port: mysqlPort,
-        waitForConnections: true,
-        connectionLimit: 10,
-        queueLimit: 0,
-        ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
-      });
-
-      // Verify connection
-      await pool.query('SELECT 1');
-      console.log(`[DB] Connected successfully to MySQL database "${mysqlDb}".`);
-
-      dbClient = pool;
-      dbDriver = 'mysql';
-
-      await createMySqlTables();
-      await seedDatabaseTables();
-      return;
-    } catch (err) {
-      console.warn(`[DB Notice] MySQL connection attempt on ${host || 'localhost'}:${port || 3306} failed (${err.message}).`);
-    }
+  // --- 3. Production Hard Gate: NEVER Silently Fall Back in Production / on Render ---
+  if (isProduction) {
+    const attemptedTarget = databaseUrl ? maskConnectionString(databaseUrl) : `${host || 'localhost'}:${port || 3306}/${dbName}`;
+    const fatalMsg =
+      `\n========================================================================\n` +
+      `[FATAL DATABASE ERROR] Production application failed to connect to persistent database.\n` +
+      `Target: ${attemptedTarget}\n` +
+      `Environment: NODE_ENV="${process.env.NODE_ENV}", RENDER="${process.env.RENDER}"\n` +
+      `Root Cause: ${lastConnectionError ? lastConnectionError.message : 'No database credentials or server reachable'}\n` +
+      `\n` +
+      `CRITICAL REQUIREMENT:\n` +
+      `In production / Render, silent fallback to local ephemeral storage is STRICTLY DISABLED to prevent data loss.\n` +
+      `Please check your Render Environment Variables:\n` +
+      `  - DATABASE_URL: (e.g. mysql://user:password@host:3306/dbname)\n` +
+      `  - OR discrete: DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT\n` +
+      `========================================================================\n`;
+    console.error(fatalMsg);
+    throw new Error(`[Production Database Error] Persistent database connection failed: ${lastConnectionError?.message || 'Database unreachable'}`);
   }
 
-  // --- 3. High-Performance Embedded JSON Store Fallback ---
+  // --- 4. Local Development Offline Fallback ---
   console.log('========================================================================');
-  console.log('[DB Info] No external PostgreSQL or MySQL database connected.');
-  console.log('[DB Info] Using Embedded Local Database Engine.');
-  console.log('[DB Info] Note: For persistent production data on Render, attach a PostgreSQL');
-  console.log('[DB Info] database or set the DATABASE_URL environment variable.');
+  console.log('[DB Info] Local development mode: No persistent MySQL or PostgreSQL connected.');
+  console.log('[DB Info] Using Embedded Local Database Engine for offline preview.');
+  console.log('[DB Info] Note: In production on Render, a persistent database connection is enforced.');
   console.log('========================================================================');
-  
+
   dbDriver = 'json';
   await seedJsonStoreData();
 }
@@ -1269,16 +1432,24 @@ async function seedJsonStoreData() {
 }
 
 /**
- * Persist uploaded file binary to database
+ * Persist uploaded file binary to database (upsert support)
  */
 export async function saveUploadedFileToDb(filename, originalName, mimeType, buffer, size) {
   try {
     const base64Data = buffer.toString('base64');
-    await query(
-      'INSERT INTO uploads (filename, original_name, mime_type, file_data, size) VALUES (?, ?, ?, ?, ?)',
-      [filename, originalName || filename, mimeType, base64Data, size || buffer.length]
-    );
-    console.log(`[Uploads Store] Persisted media file "${filename}" into database.`);
+    const [existing] = await query('SELECT id FROM uploads WHERE filename = ? LIMIT 1', [filename]);
+    if (existing && existing.length > 0) {
+      await query(
+        'UPDATE uploads SET original_name = ?, mime_type = ?, file_data = ?, size = ? WHERE filename = ?',
+        [originalName || filename, mimeType, base64Data, size || buffer.length, filename]
+      );
+    } else {
+      await query(
+        'INSERT INTO uploads (filename, original_name, mime_type, file_data, size) VALUES (?, ?, ?, ?, ?)',
+        [filename, originalName || filename, mimeType, base64Data, size || buffer.length]
+      );
+    }
+    console.log(`[Uploads Store] Persisted media file "${filename}" (${size || buffer.length} bytes) into persistent database.`);
   } catch (err) {
     console.error(`[Uploads Store] Failed to persist image to database:`, err.message);
   }
