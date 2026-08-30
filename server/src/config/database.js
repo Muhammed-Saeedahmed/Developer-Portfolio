@@ -284,6 +284,59 @@ function maskConnectionString(urlStr) {
 }
 
 /**
+ * Try connecting to PostgreSQL with adaptive SSL negotiation
+ */
+async function tryConnectPostgres(databaseUrl, host, port, user, password, dbName) {
+  const isInternal = Boolean(
+    (databaseUrl && (databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1') || databaseUrl.includes('.internal') || (databaseUrl.includes('@dpg-') && !databaseUrl.includes('.render.com')))) ||
+    (host && (host === 'localhost' || host === '127.0.0.1' || host.endsWith('.internal') || (host.startsWith('dpg-') && !host.includes('.render.com'))))
+  );
+
+  // Determine SSL candidates to try in order based on host type
+  const sslModesToTry = isInternal
+    ? [false, { rejectUnauthorized: false }]
+    : [{ rejectUnauthorized: false }, false];
+
+  let lastError = null;
+
+  for (const sslSetting of sslModesToTry) {
+    let pool = null;
+    try {
+      const config = databaseUrl
+        ? {
+            connectionString: databaseUrl,
+            ssl: sslSetting
+          }
+        : {
+            host: host || process.env.PGHOST || 'localhost',
+            port: Number(port || process.env.PGPORT || 5432),
+            user: user || process.env.PGUSER || 'postgres',
+            password: password || process.env.PGPASSWORD || '',
+            database: dbName || process.env.PGDATABASE || 'postgres',
+            ssl: sslSetting
+          };
+
+      pool = new PgPool(config);
+      // Handle idle client errors gracefully
+      pool.on('error', (err) => {
+        console.error('[PostgreSQL Pool Unexpected Error]', err.message);
+      });
+
+      const res = await pool.query('SELECT current_database(), current_user, version()');
+      console.log(`[DB] Connected successfully to PostgreSQL (Database: "${res.rows[0].current_database}", User: "${res.rows[0].current_user}", SSL: ${Boolean(sslSetting)}).`);
+      return pool;
+    } catch (err) {
+      lastError = err;
+      if (pool) {
+        try { await pool.end(); } catch (e) {}
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+/**
  * Initialize Database connection and verify tables
  */
 export async function initDatabase() {
@@ -302,37 +355,25 @@ export async function initDatabase() {
 
   // --- 1. Try PostgreSQL Connection ---
   if (isPostgresUrl || forcePostgres) {
-    try {
-      console.log(`[DB] Connecting to PostgreSQL Database (${databaseUrl ? maskConnectionString(databaseUrl) : (host || 'localhost')})...`);
-      const pgConfig = databaseUrl
-        ? {
-            connectionString: databaseUrl,
-            ssl: databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1') ? false : { rejectUnauthorized: false }
-          }
-        : {
-            host: host || process.env.PGHOST || 'localhost',
-            port: Number(port || process.env.PGPORT || 5432),
-            user: user || process.env.PGUSER || 'postgres',
-            password: password || process.env.PGPASSWORD || '',
-            database: dbName || process.env.PGDATABASE || 'postgres',
-            ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
-          };
+    const maxRetries = databaseUrl ? 4 : 1;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`[DB] Connecting to PostgreSQL Database (${databaseUrl ? maskConnectionString(databaseUrl) : (host || 'localhost')}) [Attempt ${attempt}/${maxRetries}]...`);
+        const pool = await tryConnectPostgres(databaseUrl, host, port, user, password, dbName);
+        dbClient = pool;
+        dbDriver = 'postgres';
 
-      const pool = new PgPool(pgConfig);
-      // Verify connection
-      const res = await pool.query('SELECT current_database(), current_user, version()');
-      console.log(`[DB] Connected successfully to PostgreSQL (Database: "${res.rows[0].current_database}", User: "${res.rows[0].current_user}").`);
-      
-      dbClient = pool;
-      dbDriver = 'postgres';
-
-      await createPostgresTables();
-      await seedDatabaseTables();
-      return;
-    } catch (err) {
-      console.error(`[DB Error] PostgreSQL connection failed: ${err.message}`);
-      if (databaseUrl) {
-        console.error('[DB Error] Configured DATABASE_URL could not be reached.');
+        await createPostgresTables();
+        await seedDatabaseTables();
+        return;
+      } catch (err) {
+        console.warn(`[DB Warning] PostgreSQL attempt ${attempt} failed: ${err.message}`);
+        if (attempt < maxRetries) {
+          console.log(`[DB] Retrying connection in 2000ms...`);
+          await new Promise(r => setTimeout(r, 2000));
+        } else {
+          console.error(`[DB Error] PostgreSQL connection failed after ${maxRetries} attempts.`);
+        }
       }
     }
   }
@@ -436,7 +477,14 @@ async function executePostgresQuery(sql, params = []) {
     pgSql += ' RETURNING id';
   }
 
-  const result = await dbClient.query(pgSql, params);
+  // Sanitize params: ensure NaN is converted to 0, undefined to null
+  const cleanParams = params.map(p => {
+    if (typeof p === 'number' && Number.isNaN(p)) return 0;
+    if (p === undefined) return null;
+    return p;
+  });
+
+  const result = await dbClient.query(pgSql, cleanParams);
 
   if (isInsert) {
     const insertId = result.rows && result.rows[0] ? result.rows[0].id : Date.now();

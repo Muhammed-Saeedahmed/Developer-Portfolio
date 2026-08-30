@@ -34,7 +34,7 @@ export const Experience: React.FC = () => {
               {/* Date Badge on the Left (Desktop) */}
               <div className="sm:absolute sm:-left-32 sm:top-0 text-left sm:text-right sm:w-24 mb-2 sm:mb-0">
                 <span className="text-xs font-mono font-bold text-[#00F5D4]">
-                  {exp.start_date ? exp.start_date.slice(0, 4) : '2024'} — {exp.is_current ? 'Present' : (exp.end_date ? exp.end_date.slice(0, 4) : 'Past')}
+                  {exp.start_date ? (exp.start_date.length > 7 ? exp.start_date.slice(0, 4) : exp.start_date) : '2024'} — {exp.is_current ? 'Present' : (exp.end_date ? (exp.end_date.length > 7 ? exp.end_date.slice(0, 4) : exp.end_date) : 'Past')}
                 </span>
               </div>
 
@@ -71,18 +71,23 @@ export const Experience: React.FC = () => {
                 </p>
 
                 {/* Tech Badges */}
-                {exp.technologies && exp.technologies.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 pt-2 border-t border-white/10">
-                    {exp.technologies.map((tech, tIdx) => (
-                      <span
-                        key={tIdx}
-                        className="px-2.5 py-1 rounded-lg text-xs font-medium bg-white/5 border border-white/10 text-slate-300"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {(() => {
+                  const techList = Array.isArray(exp.technologies)
+                    ? exp.technologies
+                    : (typeof exp.technologies === 'string' ? (exp.technologies as string).split(',').map(t => t.trim()).filter(Boolean) : []);
+                  return techList.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5 pt-2 border-t border-white/10">
+                      {techList.map((tech, tIdx) => (
+                        <span
+                          key={tIdx}
+                          className="px-2.5 py-1 rounded-lg text-xs font-medium bg-white/5 border border-white/10 text-slate-300"
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null;
+                })()}
               </div>
 
             </div>

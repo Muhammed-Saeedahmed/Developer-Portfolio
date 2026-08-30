@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
 import { deleteFileSafely } from '../config/upload.js';
+import { safeParseArray } from './portfolioController.js';
 
 // --- 1. Dashboard Stats & Analytics ---
 export async function getDashboardStats(req, res) {
@@ -73,6 +74,10 @@ export async function updateSettings(req, res) {
     const body = req.body;
     const [existing] = await query('SELECT id, profile_image FROM portfolio_settings LIMIT 1');
 
+    const yearsExp = Number.isNaN(Number(body.years_experience)) ? 5 : Number(body.years_experience);
+    const projectsComp = Number.isNaN(Number(body.projects_completed)) ? 24 : Number(body.projects_completed);
+    const satisfiedCli = Number.isNaN(Number(body.satisfied_clients)) ? 18 : Number(body.satisfied_clients);
+
     if (existing.length === 0) {
       await query(
         `INSERT INTO portfolio_settings (
@@ -82,7 +87,7 @@ export async function updateSettings(req, res) {
           hire_me_text, years_experience, projects_completed, satisfied_clients
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          body.developer_name || 'Muhammad Saeed',
+          body.developer_name || 'Muhammed Saeed',
           body.logo_text || 'MS.dev',
           body.hero_headline || 'Building Scalable Digital Experiences',
           body.hero_subtitle || 'Full-Stack Developer',
@@ -99,9 +104,9 @@ export async function updateSettings(req, res) {
           body.linkedin_url || '',
           body.instagram_url || '',
           body.hire_me_text || 'Hire Me',
-          Number(body.years_experience) || 5,
-          Number(body.projects_completed) || 24,
-          Number(body.satisfied_clients) || 18
+          yearsExp,
+          projectsComp,
+          satisfiedCli
         ]
       );
     } else {
@@ -135,10 +140,10 @@ export async function updateSettings(req, res) {
           body.linkedin_url,
           body.instagram_url,
           body.hire_me_text,
-          Number(body.years_experience),
-          Number(body.projects_completed),
-          Number(body.satisfied_clients),
-          existing[0].id
+          yearsExp,
+          projectsComp,
+          satisfiedCli,
+          Number(existing[0].id)
         ]
       );
     }
@@ -158,7 +163,7 @@ export async function getProjects(req, res) {
     const parsed = projects.map(p => ({
       ...p,
       status: p.status || 'Completed',
-      technologies: typeof p.technologies === 'string' ? JSON.parse(p.technologies || '[]') : p.technologies
+      technologies: safeParseArray(p.technologies)
     }));
     res.json({ success: true, data: parsed });
   } catch (err) {
@@ -205,9 +210,10 @@ export async function createProject(req, res) {
 export async function updateProject(req, res) {
   try {
     const { id } = req.params;
+    const numId = Number(id);
     const { title, description, full_description, image_url, category, status, technologies, github_url, live_url, is_featured, display_order } = req.body;
 
-    const [existing] = await query('SELECT * FROM projects WHERE id = ?', [id]);
+    const [existing] = await query('SELECT * FROM projects WHERE id = ?', [numId]);
     if (existing.length === 0) {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
@@ -236,7 +242,7 @@ export async function updateProject(req, res) {
         live_url || '',
         is_featured ? 1 : 0,
         Number(display_order) || 1,
-        id
+        numId
       ]
     );
 
@@ -250,12 +256,13 @@ export async function updateProject(req, res) {
 export async function deleteProject(req, res) {
   try {
     const { id } = req.params;
-    const [existing] = await query('SELECT image_url FROM projects WHERE id = ?', [id]);
+    const numId = Number(id);
+    const [existing] = await query('SELECT image_url FROM projects WHERE id = ?', [numId]);
     if (existing.length > 0 && existing[0].image_url) {
       deleteFileSafely(existing[0].image_url);
     }
 
-    await query('DELETE FROM projects WHERE id = ?', [id]);
+    await query('DELETE FROM projects WHERE id = ?', [numId]);
     res.json({ success: true, message: 'Project deleted successfully!' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to delete project' });
@@ -290,11 +297,12 @@ export async function createSkill(req, res) {
 export async function updateSkill(req, res) {
   try {
     const { id } = req.params;
+    const numId = Number(id);
     const { name, category, icon, proficiency, display_order } = req.body;
 
     await query(
       'UPDATE skills SET name = ?, category = ?, icon = ?, proficiency = ?, display_order = ? WHERE id = ?',
-      [name, category || 'Frontend', icon || 'Code', Number(proficiency) || 85, Number(display_order) || 1, id]
+      [name, category || 'Frontend', icon || 'Code', Number(proficiency) || 85, Number(display_order) || 1, numId]
     );
     res.json({ success: true, message: 'Skill updated successfully!' });
   } catch (err) {
@@ -305,7 +313,8 @@ export async function updateSkill(req, res) {
 export async function deleteSkill(req, res) {
   try {
     const { id } = req.params;
-    await query('DELETE FROM skills WHERE id = ?', [id]);
+    const numId = Number(id);
+    await query('DELETE FROM skills WHERE id = ?', [numId]);
     res.json({ success: true, message: 'Skill deleted successfully!' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to delete skill' });
@@ -318,7 +327,7 @@ export async function getExperience(req, res) {
     const [exp] = await query('SELECT * FROM experience ORDER BY display_order ASC, start_date DESC');
     const parsed = exp.map(e => ({
       ...e,
-      technologies: typeof e.technologies === 'string' ? JSON.parse(e.technologies || '[]') : e.technologies
+      technologies: safeParseArray(e.technologies)
     }));
     res.json({ success: true, data: parsed });
   } catch (err) {
@@ -345,6 +354,7 @@ export async function createExperience(req, res) {
 export async function updateExperience(req, res) {
   try {
     const { id } = req.params;
+    const numId = Number(id);
     const { company, position, location, start_date, end_date, is_current, description, technologies, logo_url, display_order } = req.body;
     const techArray = Array.isArray(technologies) ? technologies : (typeof technologies === 'string' ? technologies.split(',').map(t => t.trim()).filter(Boolean) : []);
 
@@ -353,10 +363,11 @@ export async function updateExperience(req, res) {
         company = ?, position = ?, location = ?, start_date = ?, end_date = ?,
         is_current = ?, description = ?, technologies = ?, logo_url = ?, display_order = ?
        WHERE id = ?`,
-      [company, position, location || '', start_date || '', end_date || '', is_current ? 1 : 0, description || '', JSON.stringify(techArray), logo_url || '', Number(display_order) || 1, id]
+      [company, position, location || '', start_date || '', end_date || '', is_current ? 1 : 0, description || '', JSON.stringify(techArray), logo_url || '', Number(display_order) || 1, numId]
     );
     res.json({ success: true, message: 'Experience updated successfully!' });
   } catch (err) {
+    console.error('Update experience error:', err);
     res.status(500).json({ success: false, message: 'Failed to update experience' });
   }
 }
@@ -364,7 +375,8 @@ export async function updateExperience(req, res) {
 export async function deleteExperience(req, res) {
   try {
     const { id } = req.params;
-    await query('DELETE FROM experience WHERE id = ?', [id]);
+    const numId = Number(id);
+    await query('DELETE FROM experience WHERE id = ?', [numId]);
     res.json({ success: true, message: 'Experience entry deleted!' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to delete experience' });
@@ -398,13 +410,14 @@ export async function createEducation(req, res) {
 export async function updateEducation(req, res) {
   try {
     const { id } = req.params;
+    const numId = Number(id);
     const { institution, degree, course, start_year, end_year, description, logo_url, display_order } = req.body;
     await query(
       `UPDATE education SET
         institution = ?, degree = ?, course = ?, start_year = ?, end_year = ?,
         description = ?, logo_url = ?, display_order = ?
        WHERE id = ?`,
-      [institution, degree, course || '', Number(start_year) || 2020, Number(end_year) || 2024, description || '', logo_url || '', Number(display_order) || 1, id]
+      [institution, degree, course || '', Number(start_year) || 2020, Number(end_year) || 2024, description || '', logo_url || '', Number(display_order) || 1, numId]
     );
     res.json({ success: true, message: 'Education updated successfully!' });
   } catch (err) {
@@ -415,7 +428,8 @@ export async function updateEducation(req, res) {
 export async function deleteEducation(req, res) {
   try {
     const { id } = req.params;
-    await query('DELETE FROM education WHERE id = ?', [id]);
+    const numId = Number(id);
+    await query('DELETE FROM education WHERE id = ?', [numId]);
     res.json({ success: true, message: 'Education deleted successfully!' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to delete education' });
@@ -448,10 +462,11 @@ export async function createService(req, res) {
 export async function updateService(req, res) {
   try {
     const { id } = req.params;
+    const numId = Number(id);
     const { title, description, icon, display_order } = req.body;
     await query(
       'UPDATE services SET title = ?, description = ?, icon = ?, display_order = ? WHERE id = ?',
-      [title, description, icon || 'Layers', Number(display_order) || 1, id]
+      [title, description, icon || 'Layers', Number(display_order) || 1, numId]
     );
     res.json({ success: true, message: 'Service updated successfully!' });
   } catch (err) {
@@ -462,7 +477,8 @@ export async function updateService(req, res) {
 export async function deleteService(req, res) {
   try {
     const { id } = req.params;
-    await query('DELETE FROM services WHERE id = ?', [id]);
+    const numId = Number(id);
+    await query('DELETE FROM services WHERE id = ?', [numId]);
     res.json({ success: true, message: 'Service deleted successfully!' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to delete service' });
@@ -495,10 +511,11 @@ export async function createSocialLink(req, res) {
 export async function updateSocialLink(req, res) {
   try {
     const { id } = req.params;
+    const numId = Number(id);
     const { platform, url, icon, display_order } = req.body;
     await query(
       'UPDATE social_links SET platform = ?, url = ?, icon = ?, display_order = ? WHERE id = ?',
-      [platform, url, icon || 'Globe', Number(display_order) || 1, id]
+      [platform, url, icon || 'Globe', Number(display_order) || 1, numId]
     );
     res.json({ success: true, message: 'Social link updated successfully!' });
   } catch (err) {
@@ -509,7 +526,8 @@ export async function updateSocialLink(req, res) {
 export async function deleteSocialLink(req, res) {
   try {
     const { id } = req.params;
-    await query('DELETE FROM social_links WHERE id = ?', [id]);
+    const numId = Number(id);
+    await query('DELETE FROM social_links WHERE id = ?', [numId]);
     res.json({ success: true, message: 'Social link deleted!' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to delete social link' });
@@ -529,8 +547,9 @@ export async function getMessages(req, res) {
 export async function toggleMessageRead(req, res) {
   try {
     const { id } = req.params;
+    const numId = Number(id);
     const { is_read } = req.body;
-    await query('UPDATE messages SET is_read = ? WHERE id = ?', [is_read ? 1 : 0, id]);
+    await query('UPDATE messages SET is_read = ? WHERE id = ?', [is_read ? 1 : 0, numId]);
     res.json({ success: true, message: `Message marked as ${is_read ? 'read' : 'unread'}.` });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to update message status' });
@@ -540,7 +559,8 @@ export async function toggleMessageRead(req, res) {
 export async function deleteMessage(req, res) {
   try {
     const { id } = req.params;
-    await query('DELETE FROM messages WHERE id = ?', [id]);
+    const numId = Number(id);
+    await query('DELETE FROM messages WHERE id = ?', [numId]);
     res.json({ success: true, message: 'Message deleted successfully!' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to delete message' });

@@ -12,33 +12,35 @@
   "portfolio_settings": [
     {
       "id": 1,
-      "developer_name": "Muhammed Saeed (Verified)",
-      "hero_headline": "PERSISTENT CLOUD ENGINEER & FULL-STACK SPECIALIST",
-      "bio": "PERSISTENCE TEST BIO: Senior Full-Stack Architect with deep expertise in persistent cloud systems. Timestamp: 1788078915921",
-      "years_experience": 7,
-      "projects_completed": 40,
-      "satisfied_clients": null,
+      "developer_name": "Muhammed Saeed (Verified Architect)",
+      "hero_headline": "Building Resilient Cloud Architecture",
+      "bio": "Verified persistent bio across restarts.",
+      "years_experience": 8,
+      "projects_completed": 45,
+      "satisfied_clients": 30,
       "created_at": "2026-08-29T14:33:08.911Z",
-      "updated_at": "2026-08-30T08:35:15.925Z"
+      "updated_at": "2026-08-30T14:01:49.287Z",
+      "logo_text": "MS.dev",
+      "hero_subtitle": "Full-Stack & Cloud Systems Architect"
     }
   ],
   "projects": [
     {
       "id": 1,
-      "title": "AI Workflow Orchestration Engine (Production Verified)",
+      "title": "CloudMesh High-Resilience IoT Manager",
       "slug": "ai-workflow-studio",
-      "description": "Persistent cloud AI workflow engine with auto-failover.",
-      "full_description": "Persistent cloud AI workflow engine with auto-failover.",
+      "description": "Persistent telemetry mesh dashboard",
+      "full_description": "Persistent telemetry mesh dashboard",
       "image_url": "",
-      "category": "AI / Cloud",
-      "technologies": "[\"React\",\"TypeScript\",\"PostgreSQL\",\"Node.js\"]",
+      "category": "IoT",
+      "technologies": "[\"React\",\"Node.js\",\"PostgreSQL\",\"Docker\"]",
       "github_url": "",
       "live_url": "",
-      "is_featured": 0,
+      "is_featured": 1,
       "display_order": 1,
       "created_at": "2026-08-29T14:33:08.911Z",
       "status": "Production Ready",
-      "updated_at": "2026-08-30T08:35:15.937Z"
+      "updated_at": "2026-08-30T14:01:49.288Z"
     },
     {
       "id": 2,
@@ -76,13 +78,13 @@
   "skills": [
     {
       "id": 1,
-      "name": "React & PostgreSQL Cloud Persistence",
-      "category": "Frontend & Architecture",
-      "icon": "Database",
-      "proficiency": 99,
+      "name": "React & Cloud Architecture",
+      "category": "Frontend",
+      "icon": "Atom",
+      "proficiency": 98,
       "display_order": 1,
       "created_at": "2026-08-29T14:33:08.911Z",
-      "updated_at": "2026-08-30T08:35:15.942Z"
+      "updated_at": "2026-08-30T14:01:49.287Z"
     },
     {
       "id": 2,
@@ -178,18 +180,18 @@
   "experience": [
     {
       "id": 1,
-      "company": "Quantum AI Labs (Production Tested)",
-      "position": "Principal Platform Engineer",
-      "location": "San Francisco, CA",
+      "company": "Vanguard NextGen Platforms [Verified Live]",
+      "position": "Staff Distributed Systems Architect",
+      "location": "San Francisco, CA (Hybrid)",
       "start_date": "2024-01-01",
       "end_date": "",
       "is_current": 1,
-      "description": "Architecting ultra-high durability persistence engines.",
-      "technologies": "[\"React\",\"TypeScript\",\"Node.js\",\"PostgreSQL\",\"Docker\"]",
+      "description": "Engineered high-durability persistence engines, real-time telemetry pipelines, and reactive state sync.",
+      "technologies": "[\"React\",\"TypeScript\",\"Node.js\",\"PostgreSQL\",\"Kafka\"]",
       "logo_url": "",
       "display_order": 1,
       "created_at": "2026-08-29T14:33:08.911Z",
-      "updated_at": "2026-08-30T08:35:15.931Z"
+      "updated_at": "2026-08-30T14:01:49.274Z"
     },
     {
       "id": 2,
@@ -930,6 +932,54 @@
       "page": "/",
       "referrer": "Direct",
       "user_agent": "axios/1.20.0"
+    },
+    {
+      "id": 1788098509831,
+      "created_at": "2026-08-30T14:01:49.273Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": ""
+    },
+    {
+      "id": 1788098509389,
+      "created_at": "2026-08-30T14:01:49.275Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": ""
+    },
+    {
+      "id": 1788098510077,
+      "created_at": "2026-08-30T14:01:49.286Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": ""
+    },
+    {
+      "id": 1788098509760,
+      "created_at": "2026-08-30T14:01:49.300Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": ""
+    },
+    {
+      "id": 1788098535298,
+      "created_at": "2026-08-30T14:02:15.002Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "node"
+    },
+    {
+      "id": 1788098539248,
+      "created_at": "2026-08-30T14:02:19.006Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "node"
     }
   ],
   "sessions": [

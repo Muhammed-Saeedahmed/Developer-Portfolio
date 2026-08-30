@@ -1,6 +1,28 @@
 import { query } from '../config/database.js';
 import { sendContactNotificationEmail } from '../config/mail.js';
 
+/**
+ * Defensively parse JSON string or comma-separated technologies into string array
+ */
+export function safeParseArray(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val.filter(Boolean);
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (!trimmed || trimmed === '[]') return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+      if (typeof parsed === 'string') return parsed.split(',').map(s => s.trim()).filter(Boolean);
+      return [String(parsed)];
+    } catch (e) {
+      // Fallback for plain comma-separated strings
+      return trimmed.split(',').map(s => s.trim()).filter(Boolean);
+    }
+  }
+  return [];
+}
+
 export async function getPublicData(req, res) {
   try {
     // 1. Settings
@@ -12,7 +34,7 @@ export async function getPublicData(req, res) {
     const parsedProjects = projects.map(p => ({
       ...p,
       status: p.status || 'Completed',
-      technologies: typeof p.technologies === 'string' ? JSON.parse(p.technologies || '[]') : p.technologies
+      technologies: safeParseArray(p.technologies)
     }));
 
     // 3. Skills
@@ -22,7 +44,7 @@ export async function getPublicData(req, res) {
     const [experience] = await query('SELECT * FROM experience ORDER BY display_order ASC, start_date DESC');
     const parsedExp = experience.map(e => ({
       ...e,
-      technologies: typeof e.technologies === 'string' ? JSON.parse(e.technologies || '[]') : e.technologies
+      technologies: safeParseArray(e.technologies)
     }));
 
     // 5. Education
