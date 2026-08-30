@@ -74,9 +74,18 @@ export async function updateSettings(req, res) {
     const body = req.body;
     const [existing] = await query('SELECT id, profile_image FROM portfolio_settings LIMIT 1');
 
-    const yearsExp = Number.isNaN(Number(body.years_experience)) ? 5 : Number(body.years_experience);
-    const projectsComp = Number.isNaN(Number(body.projects_completed)) ? 24 : Number(body.projects_completed);
-    const satisfiedCli = Number.isNaN(Number(body.satisfied_clients)) ? 18 : Number(body.satisfied_clients);
+    const existingSettings = existing[0] || {};
+    const yearsExp = body.years_experience !== undefined && body.years_experience !== '' && !Number.isNaN(Number(body.years_experience))
+      ? Number(body.years_experience)
+      : (existingSettings.years_experience !== undefined ? Number(existingSettings.years_experience) : 5);
+
+    const projectsComp = body.projects_completed !== undefined && body.projects_completed !== '' && !Number.isNaN(Number(body.projects_completed))
+      ? Number(body.projects_completed)
+      : (existingSettings.projects_completed !== undefined ? Number(existingSettings.projects_completed) : 24);
+
+    const satisfiedCli = body.satisfied_clients !== undefined && body.satisfied_clients !== '' && !Number.isNaN(Number(body.satisfied_clients))
+      ? Number(body.satisfied_clients)
+      : (existingSettings.satisfied_clients !== undefined ? Number(existingSettings.satisfied_clients) : 18);
 
     if (existing.length === 0) {
       await query(
@@ -123,23 +132,23 @@ export async function updateSettings(req, res) {
           hire_me_text = ?, years_experience = ?, projects_completed = ?, satisfied_clients = ?
         WHERE id = ?`,
         [
-          body.developer_name,
-          body.logo_text,
-          body.hero_headline,
-          body.hero_subtitle,
-          body.bio,
-          body.about_heading,
-          body.about_bio,
-          body.about_description,
-          body.profile_image,
-          body.email,
-          body.phone,
-          body.location,
-          body.resume_url,
-          body.github_url,
-          body.linkedin_url,
-          body.instagram_url,
-          body.hire_me_text,
+          body.developer_name !== undefined ? body.developer_name : existingSettings.developer_name,
+          body.logo_text !== undefined ? body.logo_text : existingSettings.logo_text,
+          body.hero_headline !== undefined ? body.hero_headline : existingSettings.hero_headline,
+          body.hero_subtitle !== undefined ? body.hero_subtitle : existingSettings.hero_subtitle,
+          body.bio !== undefined ? body.bio : existingSettings.bio,
+          body.about_heading !== undefined ? body.about_heading : existingSettings.about_heading,
+          body.about_bio !== undefined ? body.about_bio : existingSettings.about_bio,
+          body.about_description !== undefined ? body.about_description : existingSettings.about_description,
+          body.profile_image !== undefined ? body.profile_image : existingSettings.profile_image,
+          body.email !== undefined ? body.email : existingSettings.email,
+          body.phone !== undefined ? body.phone : existingSettings.phone,
+          body.location !== undefined ? body.location : existingSettings.location,
+          body.resume_url !== undefined ? body.resume_url : existingSettings.resume_url,
+          body.github_url !== undefined ? body.github_url : existingSettings.github_url,
+          body.linkedin_url !== undefined ? body.linkedin_url : existingSettings.linkedin_url,
+          body.instagram_url !== undefined ? body.instagram_url : existingSettings.instagram_url,
+          body.hire_me_text !== undefined ? body.hire_me_text : existingSettings.hire_me_text,
           yearsExp,
           projectsComp,
           satisfiedCli,

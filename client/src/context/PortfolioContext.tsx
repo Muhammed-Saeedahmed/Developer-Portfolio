@@ -55,7 +55,15 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       const res = await publicApi.getPortfolioData();
       if (res.success && res.data) {
-        setProfile(res.data.profile || defaultProfile);
+        if (res.data.profile) {
+          setProfile({
+            ...defaultProfile,
+            ...res.data.profile,
+            years_experience: res.data.profile.years_experience != null ? Number(res.data.profile.years_experience) : 5,
+            projects_completed: res.data.profile.projects_completed != null ? Number(res.data.profile.projects_completed) : 24,
+            satisfied_clients: res.data.profile.satisfied_clients != null ? Number(res.data.profile.satisfied_clients) : 18
+          });
+        }
         setProjects(res.data.projects || []);
         setSkills(res.data.skills || []);
         setExperience(res.data.experience || []);

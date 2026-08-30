@@ -284,28 +284,32 @@ function maskConnectionString(urlStr) {
 }
 
 /**
- * Try connecting to PostgreSQL with adaptive SSL negotiation
+ * Try connecting to PostgreSQL with adaptive SSL negotiation & timeout guards
  */
 async function tryConnectPostgres(databaseUrl, host, port, user, password, dbName) {
+  const cleanUrl = databaseUrl ? databaseUrl.trim() : null;
   const isInternal = Boolean(
-    (databaseUrl && (databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1') || databaseUrl.includes('.internal') || (databaseUrl.includes('@dpg-') && !databaseUrl.includes('.render.com')))) ||
+    (cleanUrl && (cleanUrl.includes('localhost') || cleanUrl.includes('127.0.0.1') || cleanUrl.includes('.internal') || (cleanUrl.includes('@dpg-') && !cleanUrl.includes('.render.com')))) ||
     (host && (host === 'localhost' || host === '127.0.0.1' || host.endsWith('.internal') || (host.startsWith('dpg-') && !host.includes('.render.com'))))
   );
 
-  // Determine SSL candidates to try in order based on host type
+  // SSL candidates to try: cloud providers (Render, Supabase, Neon, Railway) work best with { rejectUnauthorized: false }
   const sslModesToTry = isInternal
-    ? [false, { rejectUnauthorized: false }]
-    : [{ rejectUnauthorized: false }, false];
+    ? [{ rejectUnauthorized: false }, false]
+    : [{ rejectUnauthorized: false }, false, true];
 
   let lastError = null;
 
   for (const sslSetting of sslModesToTry) {
     let pool = null;
     try {
-      const config = databaseUrl
+      const config = cleanUrl
         ? {
-            connectionString: databaseUrl,
-            ssl: sslSetting
+            connectionString: cleanUrl,
+            ssl: sslSetting,
+            connectionTimeoutMillis: 10000,
+            idleTimeoutMillis: 30000,
+            max: 20
           }
         : {
             host: host || process.env.PGHOST || 'localhost',
@@ -313,13 +317,16 @@ async function tryConnectPostgres(databaseUrl, host, port, user, password, dbNam
             user: user || process.env.PGUSER || 'postgres',
             password: password || process.env.PGPASSWORD || '',
             database: dbName || process.env.PGDATABASE || 'postgres',
-            ssl: sslSetting
+            ssl: sslSetting,
+            connectionTimeoutMillis: 10000,
+            idleTimeoutMillis: 30000,
+            max: 20
           };
 
       pool = new PgPool(config);
-      // Handle idle client errors gracefully
+      // Handle idle client errors gracefully without crashing the app
       pool.on('error', (err) => {
-        console.error('[PostgreSQL Pool Unexpected Error]', err.message);
+        console.error('[PostgreSQL Pool Error]', err.message);
       });
 
       const res = await pool.query('SELECT current_database(), current_user, version()');
@@ -342,7 +349,7 @@ async function tryConnectPostgres(databaseUrl, host, port, user, password, dbNam
 export async function initDatabase() {
   loadJsonDb();
 
-  const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.MYSQL_URL;
+  const databaseUrl = (process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.MYSQL_URL || '').trim();
   const isPostgresUrl = databaseUrl && (databaseUrl.startsWith('postgres://') || databaseUrl.startsWith('postgresql://'));
   const isMysqlUrl = databaseUrl && databaseUrl.startsWith('mysql://');
 
@@ -355,7 +362,7 @@ export async function initDatabase() {
 
   // --- 1. Try PostgreSQL Connection ---
   if (isPostgresUrl || forcePostgres) {
-    const maxRetries = databaseUrl ? 4 : 1;
+    const maxRetries = databaseUrl ? 5 : 2;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         console.log(`[DB] Connecting to PostgreSQL Database (${databaseUrl ? maskConnectionString(databaseUrl) : (host || 'localhost')}) [Attempt ${attempt}/${maxRetries}]...`);
@@ -369,8 +376,9 @@ export async function initDatabase() {
       } catch (err) {
         console.warn(`[DB Warning] PostgreSQL attempt ${attempt} failed: ${err.message}`);
         if (attempt < maxRetries) {
-          console.log(`[DB] Retrying connection in 2000ms...`);
-          await new Promise(r => setTimeout(r, 2000));
+          const delayMs = attempt * 1500;
+          console.log(`[DB] Retrying connection in ${delayMs}ms...`);
+          await new Promise(r => setTimeout(r, delayMs));
         } else {
           console.error(`[DB Error] PostgreSQL connection failed after ${maxRetries} attempts.`);
         }
@@ -841,6 +849,23 @@ async function createPostgresTables() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  // Safe non-destructive column additions for existing persistent databases
+  try {
+    await dbClient.query(`
+      ALTER TABLE portfolio_settings ADD COLUMN IF NOT EXISTS years_experience INT DEFAULT 5;
+      ALTER TABLE portfolio_settings ADD COLUMN IF NOT EXISTS projects_completed INT DEFAULT 24;
+      ALTER TABLE portfolio_settings ADD COLUMN IF NOT EXISTS satisfied_clients INT DEFAULT 18;
+      ALTER TABLE portfolio_settings ADD COLUMN IF NOT EXISTS about_heading VARCHAR(255);
+      ALTER TABLE portfolio_settings ADD COLUMN IF NOT EXISTS about_bio TEXT;
+      ALTER TABLE portfolio_settings ADD COLUMN IF NOT EXISTS about_description TEXT;
+      ALTER TABLE portfolio_settings ADD COLUMN IF NOT EXISTS hire_me_text VARCHAR(100) DEFAULT 'Hire Me';
+      ALTER TABLE projects ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'Completed';
+      ALTER TABLE experience ADD COLUMN IF NOT EXISTS is_current INT DEFAULT 0;
+    `);
+  } catch (e) {
+    // Non-blocking schema evolution
+  }
 }
 
 async function createMySqlTables() {

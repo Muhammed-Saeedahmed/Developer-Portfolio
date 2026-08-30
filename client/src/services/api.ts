@@ -77,7 +77,9 @@ apiClient.interceptors.response.use(
 // Public Endpoints
 export const publicApi = {
   getPortfolioData: async () => {
-    const res = await apiClient.get('/public/portfolio');
+    const res = await apiClient.get('/public/portfolio', {
+      params: { _t: Date.now() }
+    });
     return res.data;
   },
   sendContactMessage: async (data: { name: string; email: string; subject: string; message: string }) => {

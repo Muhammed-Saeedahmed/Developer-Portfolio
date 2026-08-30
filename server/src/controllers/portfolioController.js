@@ -27,7 +27,13 @@ export async function getPublicData(req, res) {
   try {
     // 1. Settings
     const [settings] = await query('SELECT * FROM portfolio_settings LIMIT 1');
-    const profile = settings[0] || {};
+    const rawProfile = settings[0] || {};
+    const profile = {
+      ...rawProfile,
+      years_experience: rawProfile.years_experience !== undefined && rawProfile.years_experience !== null ? Number(rawProfile.years_experience) : 5,
+      projects_completed: rawProfile.projects_completed !== undefined && rawProfile.projects_completed !== null ? Number(rawProfile.projects_completed) : 24,
+      satisfied_clients: rawProfile.satisfied_clients !== undefined && rawProfile.satisfied_clients !== null ? Number(rawProfile.satisfied_clients) : 18
+    };
 
     // 2. Projects (Only published / ordered)
     const [projects] = await query('SELECT * FROM projects WHERE is_featured >= 0 ORDER BY display_order ASC, created_at DESC');

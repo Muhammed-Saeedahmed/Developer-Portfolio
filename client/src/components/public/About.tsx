@@ -8,19 +8,19 @@ export const About: React.FC = () => {
   const stats = [
     {
       label: 'Years Experience',
-      value: `${profile.years_experience || 5}+`,
+      value: `${profile.years_experience != null ? profile.years_experience : 5}+`,
       icon: <Briefcase className="w-5 h-5 text-[#00F5D4]" />,
       desc: 'Full-stack engineering & consulting'
     },
     {
       label: 'Projects Delivered',
-      value: `${profile.projects_completed || 24}+`,
+      value: `${profile.projects_completed != null ? profile.projects_completed : 24}+`,
       icon: <Award className="w-5 h-5 text-[#A855F7]" />,
       desc: 'Web apps, AI agents & dashboards'
     },
     {
-      label: 'Happy Clients',
-      value: `${profile.satisfied_clients || 18}+`,
+      label: 'Satisfied Clients',
+      value: `${profile.satisfied_clients != null ? profile.satisfied_clients : 18}+`,
       icon: <Users className="w-5 h-5 text-cyan-400" />,
       desc: 'Worldwide startups & enterprises'
     },

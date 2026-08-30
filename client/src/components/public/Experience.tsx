@@ -2,6 +2,36 @@ import React from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { Briefcase, Calendar, MapPin, Sparkles, Building2 } from 'lucide-react';
 
+function formatDateStr(dateStr?: string | null): string {
+  if (!dateStr) return '';
+  const trimmed = String(dateStr).trim();
+  if (!trimmed) return '';
+
+  if (/^\d{4}$/.test(trimmed)) return trimmed;
+
+  const match = trimmed.match(/^(\d{4})[-/](\d{1,2})(?:[-/](\d{1,2}))?/);
+  if (match) {
+    const year = match[1];
+    const monthNum = parseInt(match[2], 10);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    if (monthNum >= 1 && monthNum <= 12) {
+      return `${months[monthNum - 1]} ${year}`;
+    }
+    return `${year}-${match[2].padStart(2, '0')}`;
+  }
+
+  return trimmed;
+}
+
+function formatDateRange(startDate?: string | null, endDate?: string | null, isCurrent?: number | boolean): string {
+  const start = formatDateStr(startDate) || '2024';
+  if (Number(isCurrent) === 1) {
+    return `${start} — Present`;
+  }
+  const end = formatDateStr(endDate) || 'Past';
+  return `${start} — ${end}`;
+}
+
 export const Experience: React.FC = () => {
   const { experience } = usePortfolio();
 
@@ -25,18 +55,20 @@ export const Experience: React.FC = () => {
 
         {/* Timeline Roadmap */}
         <div className="relative border-l-2 border-white/10 ml-4 sm:ml-32 space-y-12">
-          {experience.map((exp, idx) => (
-            <div key={exp.id || idx} className="relative pl-8 sm:pl-12 group">
-              
-              {/* Timeline Bullet Node */}
-              <div className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-[#070A0F] border-2 border-[#00F5D4] group-hover:bg-[#00F5D4] group-hover:scale-125 transition-all shadow-glow-cyan" />
+          {experience.map((exp, idx) => {
+            const isCurrent = Number(exp.is_current) === 1;
+            return (
+              <div key={exp.id || idx} className="relative pl-8 sm:pl-12 group">
+                
+                {/* Timeline Bullet Node */}
+                <div className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-[#070A0F] border-2 border-[#00F5D4] group-hover:bg-[#00F5D4] group-hover:scale-125 transition-all shadow-glow-cyan" />
 
-              {/* Date Badge on the Left (Desktop) */}
-              <div className="sm:absolute sm:-left-32 sm:top-0 text-left sm:text-right sm:w-24 mb-2 sm:mb-0">
-                <span className="text-xs font-mono font-bold text-[#00F5D4]">
-                  {exp.start_date ? (exp.start_date.length > 7 ? exp.start_date.slice(0, 4) : exp.start_date) : '2024'} — {exp.is_current ? 'Present' : (exp.end_date ? (exp.end_date.length > 7 ? exp.end_date.slice(0, 4) : exp.end_date) : 'Past')}
-                </span>
-              </div>
+                {/* Date Badge on the Left (Desktop) */}
+                <div className="sm:absolute sm:-left-32 sm:top-0 text-left sm:text-right sm:w-24 mb-2 sm:mb-0">
+                  <span className="text-xs font-mono font-bold text-[#00F5D4]">
+                    {formatDateRange(exp.start_date, exp.end_date, isCurrent)}
+                  </span>
+                </div>
 
               {/* Experience Card */}
               <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-white/10 hover:border-[#00F5D4]/30 transition-all duration-300 hover:shadow-glass-hover space-y-4">
@@ -88,10 +120,10 @@ export const Experience: React.FC = () => {
                     </div>
                   ) : null;
                 })()}
+                </div>
               </div>
-
-            </div>
-          ))}
+            );
+          })}
         </div>
 
       </div>
