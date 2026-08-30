@@ -34,7 +34,7 @@ export const AdminLayout: React.FC = () => {
     );
   }
 
-  if (!token) {
+  if (!token || !user) {
     return <Navigate to="/admin/login" replace />;
   }
 

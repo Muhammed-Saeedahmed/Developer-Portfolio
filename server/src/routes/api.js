@@ -14,6 +14,7 @@ router.post('/public/track-click', portfolioController.trackProjectClick);
 
 // --- Auth Endpoints ---
 router.post('/auth/login', authController.login);
+router.post('/auth/logout', authenticateToken, authController.logout);
 router.get('/auth/me', authenticateToken, authController.getMe);
 router.put('/auth/password', authenticateToken, authController.updatePassword);
 

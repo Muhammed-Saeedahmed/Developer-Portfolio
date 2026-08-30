@@ -33,6 +33,7 @@ export const ProjectsManager: React.FC = () => {
     full_description: '',
     image_url: '',
     category: 'Web',
+    status: 'Completed',
     technologies: 'React, TypeScript, Node.js',
     github_url: '',
     live_url: '',
@@ -63,6 +64,7 @@ export const ProjectsManager: React.FC = () => {
       full_description: '',
       image_url: '',
       category: 'Web',
+      status: 'Completed',
       technologies: 'React, TypeScript, Node.js',
       github_url: '',
       live_url: '',
@@ -80,6 +82,7 @@ export const ProjectsManager: React.FC = () => {
       full_description: project.full_description || project.description,
       image_url: project.image_url || '',
       category: project.category || 'Web',
+      status: project.status || 'Completed',
       technologies: Array.isArray(project.technologies) ? project.technologies.join(', ') : project.technologies,
       github_url: project.github_url || '',
       live_url: project.live_url || '',
@@ -266,8 +269,18 @@ export const ProjectsManager: React.FC = () => {
                     </td>
 
                     <td className="px-6 py-4">
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                        Published
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                        (project.status || 'Completed') === 'In Progress'
+                          ? 'bg-[#00F5D4]/15 text-[#00F5D4] border-[#00F5D4]/30'
+                          : (project.status || 'Completed') === 'Planning'
+                          ? 'bg-sky-500/15 text-sky-400 border-sky-500/30'
+                          : (project.status || 'Completed') === 'On Hold'
+                          ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                          : (project.status || 'Completed') === 'Archived'
+                          ? 'bg-slate-500/15 text-slate-400 border-slate-500/30'
+                          : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                      }`}>
+                        {project.status || 'Completed'}
                       </span>
                     </td>
 
@@ -325,8 +338,8 @@ export const ProjectsManager: React.FC = () => {
                 onImageUploaded={(url) => setFormData(prev => ({ ...prev, image_url: url }))}
               />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-1">
                   <label className="block text-xs uppercase tracking-wider text-slate-300 font-bold mb-1.5">
                     Project Title <span className="text-[#00F5D4]">*</span>
                   </label>
@@ -355,6 +368,23 @@ export const ProjectsManager: React.FC = () => {
                     <option value="AI">AI</option>
                     <option value="IoT">IoT</option>
                     <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-slate-300 font-bold mb-1.5">
+                    Project Status <span className="text-[#00F5D4]">*</span>
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                    className="w-full px-4 py-2.5 rounded-2xl glass-input text-xs bg-slate-900 text-[#00F5D4] font-semibold"
+                  >
+                    <option value="Planning">Planning</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="On Hold">On Hold</option>
+                    <option value="Archived">Archived</option>
                   </select>
                 </div>
               </div>

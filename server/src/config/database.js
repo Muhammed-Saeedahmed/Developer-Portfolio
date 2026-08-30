@@ -31,14 +31,19 @@ let memStore = {
   services: [],
   social_links: [],
   messages: [],
-  analytics: []
+  analytics: [],
+  sessions: []
 };
 
 function loadJsonDb() {
   if (fs.existsSync(jsonDbPath)) {
     try {
       const content = fs.readFileSync(jsonDbPath, 'utf8');
-      memStore = JSON.parse(content);
+      if (content && content.trim()) {
+        const parsed = JSON.parse(content);
+        memStore = { ...memStore, ...parsed };
+        if (!memStore.sessions) memStore.sessions = [];
+      }
     } catch (e) {
       console.warn('Failed to parse json db:', e.message);
     }
@@ -52,6 +57,9 @@ function saveJsonDb() {
     console.error('Failed to write json db:', e.message);
   }
 }
+
+// Immediate synchronous load to guarantee memStore is populated on startup
+loadJsonDb();
 
 // Initial seed data
 const initialProfile = {
@@ -85,6 +93,7 @@ const initialProjects = [
     full_description: 'Comprehensive workflow automation platform built with modern React, TypeScript, and Python AI core. Features real-time multi-agent cooperation, canvas builder, and distributed queue processing.',
     image_url: '/uploads/project-ai-studio.jpg',
     category: 'AI',
+    status: 'In Progress',
     technologies: ['React', 'TypeScript', 'Node.js', 'Python', 'Tailwind CSS'],
     github_url: 'https://github.com',
     live_url: 'https://example.com',
@@ -98,6 +107,7 @@ const initialProjects = [
     full_description: 'Ultra-low latency financial analytics dashboard with WebGL charts, multi-currency support, and biometric-grade JWT authentication.',
     image_url: '/uploads/project-fintech.jpg',
     category: 'React',
+    status: 'Completed',
     technologies: ['React', 'TypeScript', 'Recharts', 'Tailwind CSS', 'PostgreSQL'],
     github_url: 'https://github.com',
     live_url: 'https://example.com',
@@ -111,6 +121,7 @@ const initialProjects = [
     full_description: 'Real-time telemetry aggregation platform using MQTT, Node.js microservices, and React glassmorphic telemetry graphs.',
     image_url: '/uploads/project-iot.jpg',
     category: 'IoT',
+    status: 'Completed',
     technologies: ['Node.js', 'React', 'MQTT', 'MySQL', 'Docker'],
     github_url: 'https://github.com',
     live_url: 'https://example.com',
@@ -124,6 +135,7 @@ const initialProjects = [
     full_description: 'Modern headless commerce engine featuring server-side rendering, global caching, inventory synchronization, and custom admin CMS.',
     image_url: '/uploads/project-ecommerce.jpg',
     category: 'Web',
+    status: 'Completed',
     technologies: ['Next.js', 'React', 'Node.js', 'Tailwind CSS', 'Stripe'],
     github_url: 'https://github.com',
     live_url: 'https://example.com',
@@ -472,6 +484,7 @@ async function createMySqlTables() {
       full_description TEXT,
       image_url VARCHAR(500),
       category VARCHAR(100) DEFAULT 'Web',
+      status VARCHAR(50) DEFAULT 'Completed',
       technologies TEXT,
       github_url VARCHAR(500),
       live_url VARCHAR(500),
@@ -570,6 +583,18 @@ async function createMySqlTables() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
+  await dbClient.query(`
+    CREATE TABLE IF NOT EXISTS sessions (
+      id VARCHAR(64) PRIMARY KEY,
+      user_id INT NOT NULL,
+      user_agent VARCHAR(500),
+      ip_address VARCHAR(100),
+      expires_at VARCHAR(100) NOT NULL,
+      last_active_at VARCHAR(100),
+      is_revoked INT DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
 }
 
 async function seedMySqlData() {
@@ -592,9 +617,9 @@ async function seedMySqlData() {
   if (projects.length === 0) {
     for (const p of initialProjects) {
       await dbClient.query(
-        `INSERT INTO projects (title, slug, description, full_description, image_url, category, technologies, github_url, live_url, is_featured, display_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [p.title, p.slug, p.description, p.full_description, p.image_url, p.category, JSON.stringify(p.technologies), p.github_url, p.live_url, p.is_featured, p.display_order]
+        `INSERT INTO projects (title, slug, description, full_description, image_url, category, status, technologies, github_url, live_url, is_featured, display_order)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [p.title, p.slug, p.description, p.full_description, p.image_url, p.category, p.status || 'Completed', JSON.stringify(p.technologies), p.github_url, p.live_url, p.is_featured, p.display_order]
       );
     }
   }
@@ -667,9 +692,14 @@ async function seedJsonStoreData() {
     memStore.projects = initialProjects.map((p, idx) => ({
       id: idx + 1,
       ...p,
+      status: p.status || 'Completed',
       technologies: JSON.stringify(p.technologies),
       created_at: new Date().toISOString()
     }));
+  } else {
+    memStore.projects.forEach(p => {
+      if (!p.status) p.status = 'Completed';
+    });
   }
 
   if (!memStore.skills || memStore.skills.length === 0) {

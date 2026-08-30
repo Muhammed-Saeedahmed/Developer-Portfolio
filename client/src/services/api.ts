@@ -1,15 +1,47 @@
 import axios from 'axios';
 import { ProfileSettings, Project, Skill, Experience, Education, Service, SocialLink } from '../types';
 
-const isLocalDev = typeof window !== 'undefined' && (window.location.port === '5173' || window.location.port === '3000');
-const BASE_ORIGIN = isLocalDev ? 'http://localhost:5000' : '';
+function getBaseOrigin(): string {
+  if (typeof window === 'undefined') return '';
+  const viteEnv = (import.meta as any).env;
+  if (viteEnv && viteEnv.VITE_API_URL) return viteEnv.VITE_API_URL;
+  // In development, when frontend is on a dev port (e.g. 5173, 3000, etc.), point to backend port 5000 on the same host
+  if (window.location.port && window.location.port !== '5000') {
+    return `${window.location.protocol}//${window.location.hostname}:5000`;
+  }
+  return '';
+}
 
+const BASE_ORIGIN = getBaseOrigin();
 export const API_BASE = `${BASE_ORIGIN}/api`;
 
 export function getAssetUrl(url?: string): string {
   if (!url) return '';
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
   return `${BASE_ORIGIN}${url.startsWith('/') ? '' : '/'}${url}`;
+}
+
+export const AUTH_TOKEN_KEY = 'saeed_portfolio_auth_token';
+
+export function getStoredToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    localStorage.removeItem('saeed_portfolio_token');
+  } catch (e) {}
+  return sessionStorage.getItem(AUTH_TOKEN_KEY);
+}
+
+export function setStoredToken(token: string): void {
+  if (typeof window === 'undefined') return;
+  sessionStorage.setItem(AUTH_TOKEN_KEY, token);
+}
+
+export function removeStoredToken(): void {
+  if (typeof window === 'undefined') return;
+  sessionStorage.removeItem(AUTH_TOKEN_KEY);
+  try {
+    localStorage.removeItem('saeed_portfolio_token');
+  } catch (e) {}
 }
 
 const apiClient = axios.create({
@@ -19,14 +51,28 @@ const apiClient = axios.create({
   },
 });
 
-// Attach JWT token automatically to every request if available
+// Attach JWT token automatically to every request if available in per-tab session
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('saeed_portfolio_token');
+  const token = getStoredToken();
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
+
+// Response interceptor to catch 401 Unauthorized responses and trigger clean logout
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      removeStoredToken();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Public Endpoints
 export const publicApi = {
@@ -52,6 +98,14 @@ export const authApi = {
   login: async (credentials: { email: string; password: string }) => {
     const res = await apiClient.post('/auth/login', credentials);
     return res.data;
+  },
+  logout: async () => {
+    try {
+      const res = await apiClient.post('/auth/logout');
+      return res.data;
+    } catch (e) {
+      return { success: true };
+    }
   },
   getMe: async () => {
     const res = await apiClient.get('/auth/me');

@@ -33,7 +33,7 @@
       "projects_completed": 24,
       "satisfied_clients": 18,
       "created_at": "2026-08-29T14:33:08.911Z",
-      "updated_at": "2026-08-29T16:04:28.109Z"
+      "updated_at": "2026-08-30T04:12:02.190Z"
     }
   ],
   "projects": [
@@ -50,7 +50,8 @@
       "live_url": "https://example.com",
       "is_featured": 1,
       "display_order": 1,
-      "created_at": "2026-08-29T14:33:08.911Z"
+      "created_at": "2026-08-29T14:33:08.911Z",
+      "status": "Completed"
     },
     {
       "id": 2,
@@ -65,7 +66,8 @@
       "live_url": "https://example.com",
       "is_featured": 1,
       "display_order": 2,
-      "created_at": "2026-08-29T14:33:08.911Z"
+      "created_at": "2026-08-29T14:33:08.911Z",
+      "status": "Completed"
     },
     {
       "id": 3,
@@ -80,7 +82,8 @@
       "live_url": "https://example.com",
       "is_featured": 1,
       "display_order": 3,
-      "created_at": "2026-08-29T14:33:08.911Z"
+      "created_at": "2026-08-29T14:33:08.911Z",
+      "status": "Completed"
     }
   ],
   "skills": [
@@ -194,11 +197,11 @@
       "end_date": "",
       "is_current": 1,
       "description": "Leading the development of enterprise SaaS platforms, modernizing legacy architectures into high-performance React and Node.js microservices.",
-      "technologies": "[\"React\",\"TypeScript\",\"Node.js\",\"MySQL\",\"Docker\"]",
+      "technologies": "[\"[\\\"React\\\"\",\"\\\"TypeScript\\\"\",\"\\\"Node.js\\\"\",\"\\\"MySQL\\\"\",\"\\\"Docker\\\"]\"]",
       "logo_url": "",
       "display_order": 1,
       "created_at": "2026-08-29T14:33:08.911Z",
-      "updated_at": "2026-08-29T15:09:18.063Z"
+      "updated_at": "2026-08-30T04:12:02.162Z"
     },
     {
       "id": 2,
@@ -851,6 +854,67 @@
       "page": "/",
       "referrer": "Direct",
       "user_agent": "node"
+    },
+    {
+      "id": 1788062543007,
+      "created_at": "2026-08-30T04:02:22.269Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": ""
+    },
+    {
+      "id": 1788063122971,
+      "created_at": "2026-08-30T04:12:02.157Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": ""
+    },
+    {
+      "id": 1788063123104,
+      "created_at": "2026-08-30T04:12:02.160Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": ""
+    },
+    {
+      "id": 1788063122654,
+      "created_at": "2026-08-30T04:12:02.162Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": ""
+    },
+    {
+      "id": 1788063122721,
+      "created_at": "2026-08-30T04:12:02.181Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": ""
+    }
+  ],
+  "sessions": [
+    {
+      "id": "f7b1cb03-2e5d-476d-813b-b6ec9fcf923d",
+      "created_at": "2026-08-30T04:02:22.510Z",
+      "user_id": 1,
+      "user_agent": "Device-A-Chrome",
+      "ip_address": "::ffff:127.0.0.1",
+      "expires_at": "2026-08-30T06:02:22.510Z",
+      "is_revoked": 1,
+      "updated_at": "2026-08-30T04:02:22.586Z"
+    },
+    {
+      "id": "8f9f3f56-bf29-482f-a92d-86182feff218",
+      "created_at": "2026-08-30T04:02:22.581Z",
+      "user_id": 1,
+      "user_agent": "Device-B-Safari",
+      "ip_address": "::ffff:127.0.0.1",
+      "expires_at": "2026-08-30T06:02:22.581Z",
+      "is_revoked": 0
     }
   ]
 }

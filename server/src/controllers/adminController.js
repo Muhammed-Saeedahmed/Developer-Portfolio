@@ -148,6 +148,7 @@ export async function getProjects(req, res) {
     const [projects] = await query('SELECT * FROM projects ORDER BY display_order ASC, created_at DESC');
     const parsed = projects.map(p => ({
       ...p,
+      status: p.status || 'Completed',
       technologies: typeof p.technologies === 'string' ? JSON.parse(p.technologies || '[]') : p.technologies
     }));
     res.json({ success: true, data: parsed });
@@ -158,7 +159,7 @@ export async function getProjects(req, res) {
 
 export async function createProject(req, res) {
   try {
-    const { title, description, full_description, image_url, category, technologies, github_url, live_url, is_featured, display_order } = req.body;
+    const { title, description, full_description, image_url, category, status, technologies, github_url, live_url, is_featured, display_order } = req.body;
     if (!title || !description) {
       return res.status(400).json({ success: false, message: 'Title and description are required' });
     }
@@ -167,8 +168,8 @@ export async function createProject(req, res) {
     const techArray = Array.isArray(technologies) ? technologies : (typeof technologies === 'string' ? technologies.split(',').map(t => t.trim()).filter(Boolean) : []);
 
     const [result] = await query(
-      `INSERT INTO projects (title, slug, description, full_description, image_url, category, technologies, github_url, live_url, is_featured, display_order)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO projects (title, slug, description, full_description, image_url, category, status, technologies, github_url, live_url, is_featured, display_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         title,
         slug,
@@ -176,6 +177,7 @@ export async function createProject(req, res) {
         full_description || description,
         image_url || '',
         category || 'Web',
+        status || 'Completed',
         JSON.stringify(techArray),
         github_url || '',
         live_url || '',
@@ -194,7 +196,7 @@ export async function createProject(req, res) {
 export async function updateProject(req, res) {
   try {
     const { id } = req.params;
-    const { title, description, full_description, image_url, category, technologies, github_url, live_url, is_featured, display_order } = req.body;
+    const { title, description, full_description, image_url, category, status, technologies, github_url, live_url, is_featured, display_order } = req.body;
 
     const [existing] = await query('SELECT * FROM projects WHERE id = ?', [id]);
     if (existing.length === 0) {
@@ -211,7 +213,7 @@ export async function updateProject(req, res) {
     await query(
       `UPDATE projects SET
         title = ?, description = ?, full_description = ?, image_url = ?, category = ?,
-        technologies = ?, github_url = ?, live_url = ?, is_featured = ?, display_order = ?
+        status = ?, technologies = ?, github_url = ?, live_url = ?, is_featured = ?, display_order = ?
        WHERE id = ?`,
       [
         title,
@@ -219,6 +221,7 @@ export async function updateProject(req, res) {
         full_description || description,
         image_url || '',
         category || 'Web',
+        status || existing[0].status || 'Completed',
         JSON.stringify(techArray),
         github_url || '',
         live_url || '',

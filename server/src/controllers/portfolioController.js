@@ -11,6 +11,7 @@ export async function getPublicData(req, res) {
     const [projects] = await query('SELECT * FROM projects WHERE is_featured >= 0 ORDER BY display_order ASC, created_at DESC');
     const parsedProjects = projects.map(p => ({
       ...p,
+      status: p.status || 'Completed',
       technologies: typeof p.technologies === 'string' ? JSON.parse(p.technologies || '[]') : p.technologies
     }));
 

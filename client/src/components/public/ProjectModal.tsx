@@ -42,13 +42,32 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose }) 
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0D131F] via-transparent to-black/40" />
           
-          <div className="absolute bottom-4 left-6 right-6">
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#00F5D4]/20 border border-[#00F5D4]/40 text-[#00F5D4] uppercase tracking-wider">
-              {project.category}
-            </span>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-white mt-2">
-              {project.title}
-            </h3>
+          <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#00F5D4]/20 border border-[#00F5D4]/40 text-[#00F5D4] uppercase tracking-wider">
+                  {project.category}
+                </span>
+                {project.status && (
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                    project.status === 'In Progress'
+                      ? 'bg-[#00F5D4]/20 text-[#00F5D4] border-[#00F5D4]/40'
+                      : project.status === 'Planning'
+                      ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                      : project.status === 'On Hold'
+                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                      : project.status === 'Archived'
+                      ? 'bg-slate-700/80 text-slate-300 border-slate-600'
+                      : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                  }`}>
+                    {project.status}
+                  </span>
+                )}
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-white mt-2">
+                {project.title}
+              </h3>
+            </div>
           </div>
         </div>
 

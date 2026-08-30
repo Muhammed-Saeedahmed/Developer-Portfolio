@@ -8,8 +8,15 @@ export const AdminLogin: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
+  const { login, token, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  // If already authenticated, redirect to /admin directly
+  React.useEffect(() => {
+    if (!isLoading && token) {
+      navigate('/admin', { replace: true });
+    }
+  }, [token, isLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,7 +25,7 @@ export const AdminLogin: React.FC = () => {
 
     const res = await login(email, password);
     if (res.success) {
-      navigate('/admin');
+      navigate('/admin', { replace: true });
     } else {
       setError(res.message || 'Invalid credentials');
     }

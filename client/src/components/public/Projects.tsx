@@ -86,11 +86,26 @@ export const Projects: React.FC = () => {
                   {/* Subtle Gradient Veil */}
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0D131F] via-transparent to-black/30 pointer-events-none" />
 
-                  {/* Category Badge */}
-                  <div className="absolute top-4 left-4 z-10">
+                  {/* Category & Status Badges */}
+                  <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
                     <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-[#070A0F]/80 backdrop-blur-md border border-white/10 text-[#00F5D4] uppercase tracking-wider">
                       {project.category}
                     </span>
+                    {project.status && (
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-md border ${
+                        project.status === 'In Progress'
+                          ? 'bg-[#00F5D4]/20 text-[#00F5D4] border-[#00F5D4]/40'
+                          : project.status === 'Planning'
+                          ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+                          : project.status === 'On Hold'
+                          ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                          : project.status === 'Archived'
+                          ? 'bg-slate-700/80 text-slate-300 border-slate-600'
+                          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                      }`}>
+                        {project.status}
+                      </span>
+                    )}
                   </div>
 
                   {/* Hover Quick View Trigger */}

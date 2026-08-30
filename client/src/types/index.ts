@@ -30,6 +30,7 @@ export interface Project {
   full_description?: string;
   image_url: string;
   category: string;
+  status?: string;
   technologies: string[];
   github_url: string;
   live_url: string;

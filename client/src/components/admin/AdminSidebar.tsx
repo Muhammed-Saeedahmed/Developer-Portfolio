@@ -25,9 +25,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ unreadCount = 0, isO
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/admin/login');
+  const handleLogout = async () => {
+    await logout();
+    navigate('/admin/login', { replace: true });
   };
 
   const navItems = [

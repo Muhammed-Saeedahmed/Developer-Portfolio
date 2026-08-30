@@ -12,7 +12,27 @@ import { Footer } from '../components/public/Footer';
 import { usePortfolio } from '../context/PortfolioContext';
 
 export const PublicPortfolio: React.FC = () => {
-  const { isLoading } = usePortfolio();
+  const { isLoading, refreshData } = usePortfolio();
+
+  React.useEffect(() => {
+    // Immediate refresh on mount
+    refreshData();
+
+    // Refresh when user switches back to this tab
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshData();
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', refreshData);
+
+    return () => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', refreshData);
+    };
+  }, []);
 
   if (isLoading) {
     return (

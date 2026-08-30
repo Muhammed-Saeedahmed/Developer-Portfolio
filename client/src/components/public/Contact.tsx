@@ -76,8 +76,8 @@ export const Contact: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
           
           {/* Left Info Panel */}
-          <div className="lg:col-span-5 glass-panel rounded-3xl p-8 sm:p-10 border border-white/10 flex flex-col justify-between space-y-8">
-            <div className="space-y-6">
+          <div className="lg:col-span-5 glass-panel rounded-3xl p-6 sm:p-10 border border-white/10 flex flex-col justify-between space-y-8 min-w-0 overflow-hidden">
+            <div className="space-y-6 min-w-0">
               <h3 className="text-2xl font-bold text-white">
                 Contact Information
               </h3>
@@ -86,40 +86,46 @@ export const Contact: React.FC = () => {
               </p>
 
               {/* Direct Info list */}
-              <div className="space-y-5 pt-2">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-[#00F5D4]">
+              <div className="space-y-5 pt-2 min-w-0">
+                <div className="flex items-start sm:items-center space-x-4 min-w-0">
+                  <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-[#00F5D4] flex-shrink-0">
                     <Mail className="w-5 h-5" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Email</p>
-                    <a href={`mailto:${profile.email || 'contact@saeed.dev'}`} className="text-sm font-bold text-white hover:text-[#00F5D4] transition-colors">
+                    <a
+                      href={`mailto:${profile.email || 'contact@saeed.dev'}`}
+                      className="text-xs sm:text-sm font-bold text-white hover:text-[#00F5D4] transition-colors break-all sm:break-words block"
+                    >
                       {profile.email || 'contact@saeed.dev'}
                     </a>
                   </div>
                 </div>
 
                 {profile.phone && (
-                  <div className="flex items-center space-x-4">
-                    <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-[#A855F7]">
+                  <div className="flex items-start sm:items-center space-x-4 min-w-0">
+                    <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-[#A855F7] flex-shrink-0">
                       <Phone className="w-5 h-5" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <p className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Phone / WhatsApp</p>
-                      <a href={`tel:${profile.phone}`} className="text-sm font-bold text-white hover:text-[#A855F7] transition-colors">
+                      <a
+                        href={`tel:${profile.phone}`}
+                        className="text-xs sm:text-sm font-bold text-white hover:text-[#A855F7] transition-colors break-words block"
+                      >
                         {profile.phone}
                       </a>
                     </div>
                   </div>
                 )}
 
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-cyan-400">
+                <div className="flex items-start sm:items-center space-x-4 min-w-0">
+                  <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-cyan-400 flex-shrink-0">
                     <MapPin className="w-5 h-5" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Location</p>
-                    <p className="text-sm font-bold text-white">
+                    <p className="text-xs sm:text-sm font-bold text-white break-words">
                       {profile.location || 'San Francisco, CA & Remote'}
                     </p>
                   </div>
