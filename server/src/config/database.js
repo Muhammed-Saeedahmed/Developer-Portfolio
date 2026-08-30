@@ -1,4 +1,5 @@
 import mysql from 'mysql2/promise';
+import pg from 'pg';
 import bcrypt from 'bcryptjs';
 import path from 'path';
 import fs from 'fs';
@@ -7,13 +8,15 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const { Pool: PgPool } = pg;
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let dbClient = null;
-let isMySql = false;
+let dbDriver = 'json'; // 'postgres' | 'mysql' | 'json'
 
-// Fallback JSON-based Relational Store
+// --- Fallback JSON-based Store (for offline local development) ---
 const dataDir = path.join(__dirname, '../../data');
 const jsonDbPath = path.join(dataDir, 'portfolio_db.json');
 
@@ -32,7 +35,8 @@ let memStore = {
   social_links: [],
   messages: [],
   analytics: [],
-  sessions: []
+  sessions: [],
+  uploads: []
 };
 
 function loadJsonDb() {
@@ -43,25 +47,27 @@ function loadJsonDb() {
         const parsed = JSON.parse(content);
         memStore = { ...memStore, ...parsed };
         if (!memStore.sessions) memStore.sessions = [];
+        if (!memStore.uploads) memStore.uploads = [];
       }
     } catch (e) {
-      console.warn('Failed to parse json db:', e.message);
+      console.warn('[DB File] Warning reading json db file:', e.message);
     }
   }
 }
 
 function saveJsonDb() {
   try {
-    fs.writeFileSync(jsonDbPath, JSON.stringify(memStore, null, 2), 'utf8');
+    const tmpPath = `${jsonDbPath}.tmp.${Date.now()}`;
+    fs.writeFileSync(tmpPath, JSON.stringify(memStore, null, 2), 'utf8');
+    fs.renameSync(tmpPath, jsonDbPath);
   } catch (e) {
-    console.error('Failed to write json db:', e.message);
+    console.error('[DB File] Error saving json db file:', e.message);
   }
 }
 
-// Immediate synchronous load to guarantee memStore is populated on startup
 loadJsonDb();
 
-// Initial seed data
+// Baseline initial seed data (used ONLY when database tables are empty)
 const initialProfile = {
   developer_name: 'Muhammed Saeed',
   logo_text: 'MS.dev',
@@ -265,58 +271,236 @@ const initialSocialLinks = [
   { platform: 'Twitter / X', url: 'https://x.com', icon: 'Twitter', display_order: 4 }
 ];
 
-export async function initDatabase() {
-  loadJsonDb();
-
-  const host = process.env.DB_HOST || 'localhost';
-  const user = process.env.DB_USER || 'root';
-  const password = process.env.DB_PASSWORD || '';
-  const port = process.env.DB_PORT || 3306;
-  const dbName = process.env.DB_NAME || 'portfolio_cms_db';
-
-  console.log(`[DB] Attempting MySQL connection on ${host}:${port}...`);
+/**
+ * Mask sensitive connection info for secure logging
+ */
+function maskConnectionString(urlStr) {
   try {
-    const rootConn = await mysql.createConnection({
-      host,
-      user,
-      password,
-      port: Number(port),
-      connectTimeout: 2000
-    });
-    await rootConn.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
-    await rootConn.end();
-
-    dbClient = await mysql.createPool({
-      host,
-      user,
-      password,
-      database: dbName,
-      port: Number(port),
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0
-    });
-    isMySql = true;
-    console.log(`[DB] Successfully connected to MySQL database "${dbName}".`);
-    await createMySqlTables();
-    await seedMySqlData();
-  } catch (err) {
-    console.warn(`[DB] MySQL connection notice (${err.message}). Using high-performance Embedded Database Engine.`);
-    isMySql = false;
-    await seedJsonStoreData();
+    const parsed = new URL(urlStr);
+    return `${parsed.protocol}//${parsed.username ? parsed.username + ':****@' : ''}${parsed.host}${parsed.pathname}`;
+  } catch (e) {
+    return 'configured database';
   }
 }
 
-// Universal query dispatcher
+/**
+ * Initialize Database connection and verify tables
+ */
+export async function initDatabase() {
+  loadJsonDb();
+
+  const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.MYSQL_URL;
+  const isPostgresUrl = databaseUrl && (databaseUrl.startsWith('postgres://') || databaseUrl.startsWith('postgresql://'));
+  const isMysqlUrl = databaseUrl && databaseUrl.startsWith('mysql://');
+
+  const host = process.env.DB_HOST;
+  const user = process.env.DB_USER;
+  const password = process.env.DB_PASSWORD || '';
+  const port = process.env.DB_PORT;
+  const dbName = process.env.DB_NAME || 'portfolio_cms_db';
+  const forcePostgres = process.env.DB_TYPE === 'postgres' || Boolean(process.env.PGHOST);
+
+  // --- 1. Try PostgreSQL Connection ---
+  if (isPostgresUrl || forcePostgres) {
+    try {
+      console.log(`[DB] Connecting to PostgreSQL Database (${databaseUrl ? maskConnectionString(databaseUrl) : (host || 'localhost')})...`);
+      const pgConfig = databaseUrl
+        ? {
+            connectionString: databaseUrl,
+            ssl: databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1') ? false : { rejectUnauthorized: false }
+          }
+        : {
+            host: host || process.env.PGHOST || 'localhost',
+            port: Number(port || process.env.PGPORT || 5432),
+            user: user || process.env.PGUSER || 'postgres',
+            password: password || process.env.PGPASSWORD || '',
+            database: dbName || process.env.PGDATABASE || 'postgres',
+            ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+          };
+
+      const pool = new PgPool(pgConfig);
+      // Verify connection
+      const res = await pool.query('SELECT current_database(), current_user, version()');
+      console.log(`[DB] Connected successfully to PostgreSQL (Database: "${res.rows[0].current_database}", User: "${res.rows[0].current_user}").`);
+      
+      dbClient = pool;
+      dbDriver = 'postgres';
+
+      await createPostgresTables();
+      await seedDatabaseTables();
+      return;
+    } catch (err) {
+      console.error(`[DB Error] PostgreSQL connection failed: ${err.message}`);
+      if (databaseUrl) {
+        console.error('[DB Error] Configured DATABASE_URL could not be reached.');
+      }
+    }
+  }
+
+  // --- 2. Try MySQL Connection ---
+  if (isMysqlUrl || host || user) {
+    try {
+      const mysqlHost = host || (isMysqlUrl ? new URL(databaseUrl).hostname : 'localhost');
+      const mysqlPort = Number(port || (isMysqlUrl ? new URL(databaseUrl).port || 3306 : 3306));
+      const mysqlUser = user || (isMysqlUrl ? new URL(databaseUrl).username : 'root');
+      const mysqlPassword = password || (isMysqlUrl ? decodeURIComponent(new URL(databaseUrl).password) : '');
+      const mysqlDb = dbName || (isMysqlUrl ? new URL(databaseUrl).pathname.replace('/', '') : 'portfolio_cms_db');
+
+      console.log(`[DB] Connecting to MySQL Database on ${mysqlHost}:${mysqlPort} (database: "${mysqlDb}")...`);
+      
+      // Auto create database if local/supported
+      try {
+        const rootConn = await mysql.createConnection({
+          host: mysqlHost,
+          user: mysqlUser,
+          password: mysqlPassword,
+          port: mysqlPort,
+          connectTimeout: 3000,
+          ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+        });
+        await rootConn.query(`CREATE DATABASE IF NOT EXISTS \`${mysqlDb}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
+        await rootConn.end();
+      } catch (e) {
+        // Ignored if user lacks root/create db permission on managed cloud MySQL
+      }
+
+      const pool = mysql.createPool({
+        host: mysqlHost,
+        user: mysqlUser,
+        password: mysqlPassword,
+        database: mysqlDb,
+        port: mysqlPort,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
+      });
+
+      // Verify connection
+      await pool.query('SELECT 1');
+      console.log(`[DB] Connected successfully to MySQL database "${mysqlDb}".`);
+
+      dbClient = pool;
+      dbDriver = 'mysql';
+
+      await createMySqlTables();
+      await seedDatabaseTables();
+      return;
+    } catch (err) {
+      console.warn(`[DB Notice] MySQL connection attempt on ${host || 'localhost'}:${port || 3306} failed (${err.message}).`);
+    }
+  }
+
+  // --- 3. High-Performance Embedded JSON Store Fallback ---
+  console.log('========================================================================');
+  console.log('[DB Info] No external PostgreSQL or MySQL database connected.');
+  console.log('[DB Info] Using Embedded Local Database Engine.');
+  console.log('[DB Info] Note: For persistent production data on Render, attach a PostgreSQL');
+  console.log('[DB Info] database or set the DATABASE_URL environment variable.');
+  console.log('========================================================================');
+  
+  dbDriver = 'json';
+  await seedJsonStoreData();
+}
+
+/**
+ * Universal Query Dispatcher
+ * Normalizes queries and results across PostgreSQL, MySQL, and JSON store
+ */
 export async function query(sql, params = []) {
-  if (isMySql) {
-    return await dbClient.query(sql, params);
+  if (dbDriver === 'postgres') {
+    return await executePostgresQuery(sql, params);
+  } else if (dbDriver === 'mysql') {
+    return await executeMySqlQuery(sql, params);
   } else {
     return executeJsonQuery(sql, params);
   }
 }
 
-// High performance JSON Relational SQL emulator
+/**
+ * Execute query on PostgreSQL
+ */
+async function executePostgresQuery(sql, params = []) {
+  let paramIdx = 1;
+  // Convert ? placeholders to $1, $2...
+  let pgSql = sql.replace(/\?/g, () => `$${paramIdx++}`);
+  
+  // Replace double quotes in standard SQL values (e.g., event_type = "pageview") to single quotes
+  pgSql = pgSql.replace(/=\s*"([^"]+)"/g, "='$1'");
+
+  const trimmed = pgSql.trim().toUpperCase();
+  const isInsert = trimmed.startsWith('INSERT INTO');
+  const isUpdateOrDelete = trimmed.startsWith('UPDATE') || trimmed.startsWith('DELETE');
+
+  if (isInsert && !pgSql.toUpperCase().includes('RETURNING')) {
+    pgSql += ' RETURNING id';
+  }
+
+  const result = await dbClient.query(pgSql, params);
+
+  if (isInsert) {
+    const insertId = result.rows && result.rows[0] ? result.rows[0].id : Date.now();
+    return [{ insertId, affectedRows: result.rowCount }];
+  }
+
+  if (isUpdateOrDelete) {
+    return [{ affectedRows: result.rowCount }];
+  }
+
+  // SELECT query: normalize row keys so count aliases (e.g. totalProjects) are accessible in all common casings
+  const rows = result.rows.map(row => {
+    const copy = { ...row };
+    for (const key of Object.keys(row)) {
+      const lower = key.toLowerCase();
+      if (lower !== key && !(lower in copy)) {
+        copy[lower] = row[key];
+      }
+      if (lower === 'totalprojects') copy.totalProjects = Number(row[key]);
+      if (lower === 'totalskills') copy.totalSkills = Number(row[key]);
+      if (lower === 'totalexperience') copy.totalExperience = Number(row[key]);
+      if (lower === 'totaleducation') copy.totalEducation = Number(row[key]);
+      if (lower === 'totalmessages') copy.totalMessages = Number(row[key]);
+      if (lower === 'unreadmessages') copy.unreadMessages = Number(row[key]);
+      if (lower === 'totalviews') copy.totalViews = Number(row[key]);
+      if (lower === 'projectclicks') copy.projectClicks = Number(row[key]);
+      if (lower === 'count') copy.count = Number(row[key]);
+    }
+    return copy;
+  });
+
+  return [rows];
+}
+
+/**
+ * Execute query on MySQL
+ */
+async function executeMySqlQuery(sql, params = []) {
+  const normalizedSql = sql.replace(/=\s*"([^"]+)"/g, "='$1'");
+  const [result, fields] = await dbClient.query(normalizedSql, params);
+
+  if (Array.isArray(result)) {
+    const normalizedRows = result.map(row => {
+      const copy = { ...row };
+      if ('count' in copy) copy.count = Number(copy.count);
+      if ('totalProjects' in copy) copy.totalProjects = Number(copy.totalProjects);
+      if ('totalSkills' in copy) copy.totalSkills = Number(copy.totalSkills);
+      if ('totalExperience' in copy) copy.totalExperience = Number(copy.totalExperience);
+      if ('totalEducation' in copy) copy.totalEducation = Number(copy.totalEducation);
+      if ('totalMessages' in copy) copy.totalMessages = Number(copy.totalMessages);
+      if ('unreadMessages' in copy) copy.unreadMessages = Number(copy.unreadMessages);
+      if ('totalViews' in copy) copy.totalViews = Number(copy.totalViews);
+      if ('projectClicks' in copy) copy.projectClicks = Number(copy.projectClicks);
+      return copy;
+    });
+    return [normalizedRows, fields];
+  }
+
+  return [result, fields];
+}
+
+/**
+ * High performance JSON Relational SQL emulator for offline mode
+ */
 function executeJsonQuery(sql, params = []) {
   const s = sql.trim().replace(/\s+/g, ' ');
   const upper = s.toUpperCase();
@@ -332,14 +516,26 @@ function executeJsonQuery(sql, params = []) {
       const whereClause = fromMatch[2];
       if (whereClause) {
         if (whereClause.includes('IS_READ = 0')) rows = rows.filter(r => Number(r.is_read) === 0);
-        if (whereClause.includes('EVENT_TYPE = "PAGEVIEW"')) rows = rows.filter(r => r.event_type === 'pageview');
-        if (whereClause.includes('EVENT_TYPE = "PROJECT_CLICK"')) rows = rows.filter(r => r.event_type === 'project_click');
+        if (whereClause.includes('EVENT_TYPE = \'PAGEVIEW\'') || whereClause.includes('EVENT_TYPE = "PAGEVIEW"')) {
+          rows = rows.filter(r => r.event_type === 'pageview');
+        }
+        if (whereClause.includes('EVENT_TYPE = \'PROJECT_CLICK\'') || whereClause.includes('EVENT_TYPE = "PROJECT_CLICK"')) {
+          rows = rows.filter(r => r.event_type === 'project_click');
+        }
       }
       const countVal = rows.length;
       return [[{
         [countKey]: countVal,
         [countKey.toLowerCase()]: countVal,
         [countKey.toUpperCase()]: countVal,
+        totalProjects: countVal,
+        totalSkills: countVal,
+        totalExperience: countVal,
+        totalEducation: countVal,
+        totalMessages: countVal,
+        unreadMessages: countVal,
+        totalViews: countVal,
+        projectClicks: countVal,
         count: countVal
       }]];
     }
@@ -357,6 +553,8 @@ function executeJsonQuery(sql, params = []) {
       rows = rows.filter(r => r.email === params[0]);
     } else if (upper.includes('WHERE ID = ?')) {
       rows = rows.filter(r => String(r.id) === String(params[0]));
+    } else if (upper.includes('WHERE FILENAME = ?')) {
+      rows = rows.filter(r => String(r.filename) === String(params[0]));
     } else if (upper.includes('WHERE IS_FEATURED >=')) {
       rows = rows.filter(r => (Number(r.is_featured) || 0) >= 0);
     }
@@ -364,8 +562,8 @@ function executeJsonQuery(sql, params = []) {
     // ORDER BY
     if (upper.includes('ORDER BY DISPLAY_ORDER ASC')) {
       rows.sort((a, b) => (Number(a.display_order) || 0) - (Number(b.display_order) || 0));
-    } else if (upper.includes('ORDER BY CREATED_AT DESC')) {
-      rows.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    } else if (upper.includes('ORDER BY CREATED_AT DESC') || upper.includes('ORDER BY START_DATE DESC') || upper.includes('ORDER BY START_YEAR DESC')) {
+      rows.sort((a, b) => new Date(b.created_at || b.start_date || b.start_year || 0) - new Date(a.created_at || a.start_date || a.start_year || 0));
     }
 
     // LIMIT
@@ -375,7 +573,6 @@ function executeJsonQuery(sql, params = []) {
       rows = rows.slice(0, 5);
     }
 
-    // Deep clone rows to prevent mutation
     const cloned = JSON.parse(JSON.stringify(rows));
     return [cloned];
   }
@@ -435,8 +632,170 @@ function executeJsonQuery(sql, params = []) {
   return [{ affectedRows: 0 }];
 }
 
+// --- Schema Initializers ---
+
+async function createPostgresTables() {
+  await dbClient.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      email VARCHAR(255) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      name VARCHAR(255) NOT NULL,
+      role VARCHAR(50) DEFAULT 'admin',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS portfolio_settings (
+      id SERIAL PRIMARY KEY,
+      developer_name VARCHAR(255) NOT NULL,
+      logo_text VARCHAR(100) DEFAULT 'MS.dev',
+      hero_headline VARCHAR(255) NOT NULL,
+      hero_subtitle VARCHAR(255) NOT NULL,
+      bio TEXT NOT NULL,
+      about_heading VARCHAR(255),
+      about_bio TEXT,
+      about_description TEXT,
+      profile_image VARCHAR(500),
+      email VARCHAR(255),
+      phone VARCHAR(100),
+      location VARCHAR(255),
+      resume_url VARCHAR(500),
+      github_url VARCHAR(500),
+      linkedin_url VARCHAR(500),
+      instagram_url VARCHAR(500),
+      hire_me_text VARCHAR(100) DEFAULT 'Hire Me',
+      years_experience INT DEFAULT 5,
+      projects_completed INT DEFAULT 24,
+      satisfied_clients INT DEFAULT 18,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS projects (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      slug VARCHAR(255) UNIQUE NOT NULL,
+      description TEXT NOT NULL,
+      full_description TEXT,
+      image_url VARCHAR(500),
+      category VARCHAR(100) DEFAULT 'Web',
+      status VARCHAR(50) DEFAULT 'Completed',
+      technologies TEXT,
+      github_url VARCHAR(500),
+      live_url VARCHAR(500),
+      is_featured INT DEFAULT 1,
+      display_order INT DEFAULT 1,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS skills (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      category VARCHAR(100) DEFAULT 'Frontend',
+      icon VARCHAR(100) DEFAULT 'Code',
+      proficiency INT DEFAULT 90,
+      display_order INT DEFAULT 1,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS experience (
+      id SERIAL PRIMARY KEY,
+      company VARCHAR(255) NOT NULL,
+      position VARCHAR(255) NOT NULL,
+      location VARCHAR(255),
+      start_date VARCHAR(50),
+      end_date VARCHAR(50),
+      is_current INT DEFAULT 0,
+      description TEXT,
+      technologies TEXT,
+      logo_url VARCHAR(500),
+      display_order INT DEFAULT 1,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS education (
+      id SERIAL PRIMARY KEY,
+      institution VARCHAR(255) NOT NULL,
+      degree VARCHAR(255) NOT NULL,
+      course VARCHAR(255),
+      start_year INT,
+      end_year INT,
+      description TEXT,
+      logo_url VARCHAR(500),
+      display_order INT DEFAULT 1,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS services (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      description TEXT NOT NULL,
+      icon VARCHAR(100) DEFAULT 'Layers',
+      display_order INT DEFAULT 1,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS social_links (
+      id SERIAL PRIMARY KEY,
+      platform VARCHAR(100) NOT NULL,
+      url VARCHAR(500) NOT NULL,
+      icon VARCHAR(100) DEFAULT 'Globe',
+      display_order INT DEFAULT 1,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS messages (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      email VARCHAR(255) NOT NULL,
+      subject VARCHAR(255) NOT NULL,
+      message TEXT NOT NULL,
+      is_read INT DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS analytics (
+      id SERIAL PRIMARY KEY,
+      event_type VARCHAR(100) DEFAULT 'pageview',
+      page VARCHAR(255) DEFAULT '/',
+      project_id INT,
+      referrer VARCHAR(500),
+      ip_hash VARCHAR(255),
+      user_agent VARCHAR(500),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+      id VARCHAR(64) PRIMARY KEY,
+      user_id INT NOT NULL,
+      user_agent VARCHAR(500),
+      ip_address VARCHAR(100),
+      expires_at VARCHAR(100) NOT NULL,
+      last_active_at VARCHAR(100),
+      is_revoked INT DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS uploads (
+      id SERIAL PRIMARY KEY,
+      filename VARCHAR(255) UNIQUE NOT NULL,
+      original_name VARCHAR(255),
+      mime_type VARCHAR(100) NOT NULL,
+      file_data TEXT NOT NULL,
+      size INT DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+}
+
 async function createMySqlTables() {
-  // MySQL table definitions
   await dbClient.query(`
     CREATE TABLE IF NOT EXISTS users (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -595,70 +954,141 @@ async function createMySqlTables() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
+  await dbClient.query(`
+    CREATE TABLE IF NOT EXISTS uploads (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      filename VARCHAR(255) UNIQUE NOT NULL,
+      original_name VARCHAR(255),
+      mime_type VARCHAR(100) NOT NULL,
+      file_data LONGTEXT NOT NULL,
+      size INT DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
 }
 
-async function seedMySqlData() {
+/**
+ * Idempotent Seed Logic for PostgreSQL / MySQL
+ * Only seeds when table has 0 rows. Never overwrites or resets existing data.
+ */
+async function seedDatabaseTables() {
+  console.log('[DB Seed] Checking database tables for initial setup...');
+
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@saeed.dev';
   const adminPass = process.env.ADMIN_PASSWORD || 'Admin@2026!';
-  const [users] = await dbClient.query('SELECT id FROM users LIMIT 1');
-  if (users.length === 0) {
+
+  // 1. Users
+  const [users] = await query('SELECT id FROM users LIMIT 1');
+  if (!users || users.length === 0) {
+    console.log(`[DB Seed] Initializing default admin user (${adminEmail})...`);
     const hashed = await bcrypt.hash(adminPass, 10);
-    await dbClient.query('INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?)', [adminEmail, hashed, 'Muhammed Saeed', 'admin']);
+    await query('INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?)', [adminEmail, hashed, 'Muhammed Saeed', 'admin']);
+  } else {
+    console.log(`[DB Seed] Table "users" has ${users.length} user(s). Preserving existing credentials.`);
   }
-  const [settings] = await dbClient.query('SELECT id FROM portfolio_settings LIMIT 1');
-  if (settings.length === 0) {
-    await dbClient.query(
-      `INSERT INTO portfolio_settings (developer_name, logo_text, hero_headline, hero_subtitle, bio, about_heading, about_bio, about_description, profile_image, email, phone, location, resume_url, github_url, linkedin_url, instagram_url, hire_me_text, years_experience, projects_completed, satisfied_clients)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [initialProfile.developer_name, initialProfile.logo_text, initialProfile.hero_headline, initialProfile.hero_subtitle, initialProfile.bio, initialProfile.about_heading, initialProfile.about_bio, initialProfile.about_description, initialProfile.profile_image, initialProfile.email, initialProfile.phone, initialProfile.location, initialProfile.resume_url, initialProfile.github_url, initialProfile.linkedin_url, initialProfile.instagram_url, initialProfile.hire_me_text, initialProfile.years_experience, initialProfile.projects_completed, initialProfile.satisfied_clients]
+
+  // 2. Portfolio Settings
+  const [settings] = await query('SELECT id FROM portfolio_settings LIMIT 1');
+  if (!settings || settings.length === 0) {
+    console.log('[DB Seed] Table "portfolio_settings" is empty. Inserting baseline profile...');
+    await query(
+      `INSERT INTO portfolio_settings (
+        developer_name, logo_text, hero_headline, hero_subtitle, bio,
+        about_heading, about_bio, about_description, profile_image, email,
+        phone, location, resume_url, github_url, linkedin_url, instagram_url,
+        hire_me_text, years_experience, projects_completed, satisfied_clients
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        initialProfile.developer_name, initialProfile.logo_text, initialProfile.hero_headline, initialProfile.hero_subtitle, initialProfile.bio,
+        initialProfile.about_heading, initialProfile.about_bio, initialProfile.about_description, initialProfile.profile_image, initialProfile.email,
+        initialProfile.phone, initialProfile.location, initialProfile.resume_url, initialProfile.github_url, initialProfile.linkedin_url, initialProfile.instagram_url,
+        initialProfile.hire_me_text, initialProfile.years_experience, initialProfile.projects_completed, initialProfile.satisfied_clients
+      ]
     );
+  } else {
+    console.log('[DB Seed] Table "portfolio_settings" has existing data. Preserving without reset.');
   }
-  const [projects] = await dbClient.query('SELECT id FROM projects LIMIT 1');
-  if (projects.length === 0) {
+
+  // 3. Projects
+  const [projects] = await query('SELECT id FROM projects LIMIT 1');
+  if (!projects || projects.length === 0) {
+    console.log(`[DB Seed] Table "projects" is empty. Seeding ${initialProjects.length} initial projects...`);
     for (const p of initialProjects) {
-      await dbClient.query(
+      await query(
         `INSERT INTO projects (title, slug, description, full_description, image_url, category, status, technologies, github_url, live_url, is_featured, display_order)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [p.title, p.slug, p.description, p.full_description, p.image_url, p.category, p.status || 'Completed', JSON.stringify(p.technologies), p.github_url, p.live_url, p.is_featured, p.display_order]
       );
     }
+  } else {
+    console.log('[DB Seed] Table "projects" has existing projects. Preserving without reset.');
   }
-  const [skills] = await dbClient.query('SELECT id FROM skills LIMIT 1');
-  if (skills.length === 0) {
+
+  // 4. Skills
+  const [skills] = await query('SELECT id FROM skills LIMIT 1');
+  if (!skills || skills.length === 0) {
+    console.log(`[DB Seed] Table "skills" is empty. Seeding ${initialSkills.length} initial skills...`);
     for (const s of initialSkills) {
-      await dbClient.query('INSERT INTO skills (name, category, icon, proficiency, display_order) VALUES (?, ?, ?, ?, ?)', [s.name, s.category, s.icon, s.proficiency, s.display_order]);
+      await query('INSERT INTO skills (name, category, icon, proficiency, display_order) VALUES (?, ?, ?, ?, ?)', [s.name, s.category, s.icon, s.proficiency, s.display_order]);
     }
+  } else {
+    console.log('[DB Seed] Table "skills" has existing skills. Preserving without reset.');
   }
-  const [exp] = await dbClient.query('SELECT id FROM experience LIMIT 1');
-  if (exp.length === 0) {
+
+  // 5. Experience
+  const [exp] = await query('SELECT id FROM experience LIMIT 1');
+  if (!exp || exp.length === 0) {
+    console.log(`[DB Seed] Table "experience" is empty. Seeding ${initialExperience.length} initial entries...`);
     for (const e of initialExperience) {
-      await dbClient.query(
+      await query(
         `INSERT INTO experience (company, position, location, start_date, end_date, is_current, description, technologies, logo_url, display_order)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [e.company, e.position, e.location, e.start_date, e.end_date, e.is_current, e.description, JSON.stringify(e.technologies), e.logo_url, e.display_order]
       );
     }
+  } else {
+    console.log('[DB Seed] Table "experience" has existing data. Preserving without reset.');
   }
-  const [edu] = await dbClient.query('SELECT id FROM education LIMIT 1');
-  if (edu.length === 0) {
+
+  // 6. Education
+  const [edu] = await query('SELECT id FROM education LIMIT 1');
+  if (!edu || edu.length === 0) {
+    console.log(`[DB Seed] Table "education" is empty. Seeding ${initialEducation.length} entries...`);
     for (const ed of initialEducation) {
-      await dbClient.query('INSERT INTO education (institution, degree, course, start_year, end_year, description, logo_url, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [ed.institution, ed.degree, ed.course, ed.start_year, ed.end_year, ed.description, ed.logo_url, ed.display_order]);
+      await query('INSERT INTO education (institution, degree, course, start_year, end_year, description, logo_url, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [ed.institution, ed.degree, ed.course, ed.start_year, ed.end_year, ed.description, ed.logo_url, ed.display_order]);
     }
+  } else {
+    console.log('[DB Seed] Table "education" has existing data. Preserving without reset.');
   }
-  const [services] = await dbClient.query('SELECT id FROM services LIMIT 1');
-  if (services.length === 0) {
+
+  // 7. Services
+  const [services] = await query('SELECT id FROM services LIMIT 1');
+  if (!services || services.length === 0) {
+    console.log(`[DB Seed] Table "services" is empty. Seeding ${initialServices.length} entries...`);
     for (const sv of initialServices) {
-      await dbClient.query('INSERT INTO services (title, description, icon, display_order) VALUES (?, ?, ?, ?)', [sv.title, sv.description, sv.icon, sv.display_order]);
+      await query('INSERT INTO services (title, description, icon, display_order) VALUES (?, ?, ?, ?)', [sv.title, sv.description, sv.icon, sv.display_order]);
     }
+  } else {
+    console.log('[DB Seed] Table "services" has existing data. Preserving without reset.');
   }
-  const [social] = await dbClient.query('SELECT id FROM social_links LIMIT 1');
-  if (social.length === 0) {
+
+  // 8. Social Links
+  const [social] = await query('SELECT id FROM social_links LIMIT 1');
+  if (!social || social.length === 0) {
+    console.log(`[DB Seed] Table "social_links" is empty. Seeding ${initialSocialLinks.length} entries...`);
     for (const sc of initialSocialLinks) {
-      await dbClient.query('INSERT INTO social_links (platform, url, icon, display_order) VALUES (?, ?, ?, ?)', [sc.platform, sc.url, sc.icon, sc.display_order]);
+      await query('INSERT INTO social_links (platform, url, icon, display_order) VALUES (?, ?, ?, ?)', [sc.platform, sc.url, sc.icon, sc.display_order]);
     }
+  } else {
+    console.log('[DB Seed] Table "social_links" has existing data. Preserving without reset.');
   }
+
+  console.log('[DB Seed] All database tables verified successfully.');
 }
 
+/**
+ * Idempotent Seed Logic for JSON File Store (Offline fallback)
+ */
 async function seedJsonStoreData() {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@saeed.dev';
   const adminPass = process.env.ADMIN_PASSWORD || 'Admin@2026!';
@@ -673,11 +1103,6 @@ async function seedJsonStoreData() {
       role: 'admin',
       created_at: new Date().toISOString()
     }];
-  } else if (process.env.ADMIN_PASSWORD) {
-    // If custom ADMIN_PASSWORD provided in cloud environment, update user 1
-    const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
-    memStore.users[0].password = hashed;
-    if (process.env.ADMIN_EMAIL) memStore.users[0].email = process.env.ADMIN_EMAIL;
   }
 
   if (!memStore.portfolio_settings || memStore.portfolio_settings.length === 0) {
@@ -696,10 +1121,6 @@ async function seedJsonStoreData() {
       technologies: JSON.stringify(p.technologies),
       created_at: new Date().toISOString()
     }));
-  } else {
-    memStore.projects.forEach(p => {
-      if (!p.status) p.status = 'Completed';
-    });
   }
 
   if (!memStore.skills || memStore.skills.length === 0) {
@@ -766,10 +1187,60 @@ async function seedJsonStoreData() {
     ];
   }
 
-  if (!memStore.analytics) {
-    memStore.analytics = [];
-  }
+  if (!memStore.analytics) memStore.analytics = [];
+  if (!memStore.sessions) memStore.sessions = [];
+  if (!memStore.uploads) memStore.uploads = [];
 
   saveJsonDb();
-  console.log('[DB Engine] Initialized and seeded data store successfully.');
+  console.log('[DB File] Embedded database loaded and verified.');
+}
+
+/**
+ * Persist uploaded file binary to database
+ */
+export async function saveUploadedFileToDb(filename, originalName, mimeType, buffer, size) {
+  try {
+    const base64Data = buffer.toString('base64');
+    await query(
+      'INSERT INTO uploads (filename, original_name, mime_type, file_data, size) VALUES (?, ?, ?, ?, ?)',
+      [filename, originalName || filename, mimeType, base64Data, size || buffer.length]
+    );
+    console.log(`[Uploads Store] Persisted media file "${filename}" into database.`);
+  } catch (err) {
+    console.error(`[Uploads Store] Failed to persist image to database:`, err.message);
+  }
+}
+
+/**
+ * Retrieve uploaded file binary from database
+ */
+export async function getUploadedFileFromDb(filename) {
+  try {
+    const [rows] = await query('SELECT filename, mime_type, file_data FROM uploads WHERE filename = ? LIMIT 1', [filename]);
+    if (rows && rows.length > 0) {
+      const mimeType = rows[0].mime_type || rows[0].mimetype || 'image/jpeg';
+      const fileData = rows[0].file_data || rows[0].filedata;
+      if (fileData) {
+        return {
+          filename: rows[0].filename,
+          mimeType,
+          buffer: Buffer.from(fileData, 'base64')
+        };
+      }
+    }
+  } catch (err) {
+    console.warn(`[Uploads Store] Could not retrieve "${filename}" from database:`, err.message);
+  }
+  return null;
+}
+
+/**
+ * Delete uploaded file record from database
+ */
+export async function deleteUploadedFileFromDb(filename) {
+  try {
+    await query('DELETE FROM uploads WHERE filename = ?', [filename]);
+  } catch (err) {
+    // Non-blocking
+  }
 }

@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { initDatabase } from './config/database.js';
+import { initDatabase, getUploadedFileFromDb } from './config/database.js';
 import apiRoutes from './routes/api.js';
 
 dotenv.config();
@@ -30,12 +30,10 @@ const uploadsDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
-app.use('/uploads', express.static(uploadsDir));
 
 // Copy default placeholder assets if they don't exist
 const defaultAvatarPath = path.join(uploadsDir, 'default-avatar.png');
 if (!fs.existsSync(defaultAvatarPath)) {
-  // If root generated image exists, copy as high-res initial photo
   const rootImg = path.join(__dirname, '../../public_portfolio_ui_1788012489015.jpg');
   if (fs.existsSync(rootImg)) {
     try {
@@ -49,6 +47,35 @@ if (!fs.existsSync(defaultAvatarPath)) {
     }
   }
 }
+
+// Uploads route with database-backed persistence for ephemeral environments (e.g. Render)
+app.get('/uploads/:filename', async (req, res) => {
+  const filename = path.basename(req.params.filename);
+  const filePath = path.join(uploadsDir, filename);
+
+  // 1. If file exists in local disk cache, serve directly
+  if (fs.existsSync(filePath)) {
+    return res.sendFile(filePath);
+  }
+
+  // 2. If missing on disk (e.g. after Render restart), restore from persistent database
+  try {
+    const fileRecord = await getUploadedFileFromDb(filename);
+    if (fileRecord && fileRecord.buffer) {
+      try {
+        fs.writeFileSync(filePath, fileRecord.buffer);
+      } catch (e) {
+        // Non-blocking disk write
+      }
+      res.setHeader('Content-Type', fileRecord.mimeType || 'application/octet-stream');
+      return res.send(fileRecord.buffer);
+    }
+  } catch (err) {
+    console.warn(`[Uploads] Could not restore ${filename} from database:`, err.message);
+  }
+
+  res.status(404).json({ success: false, message: 'File not found' });
+});
 
 // Health check
 app.get('/health', (req, res) => {
@@ -82,9 +109,9 @@ app.use((err, req, res, next) => {
 async function startServer() {
   try {
     await initDatabase();
-    app.listen(PORT, () => {
+    app.listen(Number(PORT), '0.0.0.0', () => {
       console.log(`====================================================`);
-      console.log(`  Portfolio CMS Server running on http://localhost:${PORT}`);
+      console.log(`  Portfolio CMS Server running on port ${PORT}`);
       console.log(`  API Base: http://localhost:${PORT}/api`);
       console.log(`  Uploads:  http://localhost:${PORT}/uploads`);
       console.log(`====================================================`);

@@ -1,6 +1,8 @@
 import express from 'express';
+import fs from 'fs';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { upload, deleteFileSafely } from '../config/upload.js';
+import { saveUploadedFileToDb } from '../config/database.js';
 import * as authController from '../controllers/authController.js';
 import * as portfolioController from '../controllers/portfolioController.js';
 import * as adminController from '../controllers/adminController.js';
@@ -19,25 +21,48 @@ router.get('/auth/me', authenticateToken, authController.getMe);
 router.put('/auth/password', authenticateToken, authController.updatePassword);
 
 // --- Upload Endpoint (Protected) ---
-router.post('/admin/upload', authenticateToken, upload.single('file'), (req, res) => {
+router.post('/admin/upload', authenticateToken, upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No file uploaded' });
   }
-  const fileUrl = `/uploads/${req.file.filename}`;
-  res.json({
-    success: true,
-    fileUrl,
-    filename: req.file.filename,
-    originalName: req.file.originalname,
-    size: req.file.size
-  });
+
+  try {
+    // Read uploaded file buffer and persist to database for permanent storage across container restarts
+    const fileBuffer = fs.readFileSync(req.file.path);
+    await saveUploadedFileToDb(
+      req.file.filename,
+      req.file.originalname,
+      req.file.mimetype,
+      fileBuffer,
+      req.file.size
+    );
+
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.json({
+      success: true,
+      fileUrl,
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size
+    });
+  } catch (err) {
+    console.error('File upload save error:', err);
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.json({
+      success: true,
+      fileUrl,
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size
+    });
+  }
 });
 
 // Delete uploaded file endpoint
-router.post('/admin/delete-file', authenticateToken, (req, res) => {
+router.post('/admin/delete-file', authenticateToken, async (req, res) => {
   const { fileUrl } = req.body;
   if (fileUrl) {
-    deleteFileSafely(fileUrl);
+    await deleteFileSafely(fileUrl);
   }
   res.json({ success: true, message: 'File deleted if existed' });
 });

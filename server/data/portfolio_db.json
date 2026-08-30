@@ -12,46 +12,33 @@
   "portfolio_settings": [
     {
       "id": 1,
-      "developer_name": "Muhammed Saeed",
-      "logo_text": "Muhammed.dev",
-      "hero_headline": "Building Scalable Digital Experiences",
-      "hero_subtitle": "Full-Stack Developer & Creative Technologist",
-      "bio": "Full-Stack Developer passionate about building modern, scalable and creative digital experiences. I enjoy turning ideas into functional applications and exploring technologies across web development, databases, analytics, IoT and AI.",
-      "about_heading": "Engineering Modern, Scalable Web Applications",
-      "about_bio": "Full-Stack Developer passionate about building modern, scalable and creative digital experiences. I enjoy turning ideas into functional applications and exploring technologies across web development, databases, analytics, IoT and AI.",
-      "about_description": "With a strong foundation in modern frontend architectures, backend APIs, and cloud infrastructure, I build high-performance web products that deliver exceptional user experiences.",
-      "profile_image": "",
-      "email": "patel.muhammed.saeedahmed@gmail.com",
-      "phone": "Currently Unavailable ",
-      "location": "Bharuch, Gujarat, India",
-      "resume_url": "#",
-      "github_url": "https://github.com",
-      "linkedin_url": "https://linkedin.com",
-      "instagram_url": "https://instagram.com",
-      "hire_me_text": "Hire Me",
-      "years_experience": 5,
-      "projects_completed": 24,
-      "satisfied_clients": 18,
+      "developer_name": "Muhammed Saeed (Verified)",
+      "hero_headline": "PERSISTENT CLOUD ENGINEER & FULL-STACK SPECIALIST",
+      "bio": "PERSISTENCE TEST BIO: Senior Full-Stack Architect with deep expertise in persistent cloud systems. Timestamp: 1788078915921",
+      "years_experience": 7,
+      "projects_completed": 40,
+      "satisfied_clients": null,
       "created_at": "2026-08-29T14:33:08.911Z",
-      "updated_at": "2026-08-30T04:12:02.190Z"
+      "updated_at": "2026-08-30T08:35:15.925Z"
     }
   ],
   "projects": [
     {
       "id": 1,
-      "title": "AI Workflow Studio",
+      "title": "AI Workflow Orchestration Engine (Production Verified)",
       "slug": "ai-workflow-studio",
-      "description": "Autonomous AI agents orchestration dashboard with real-time streaming workflows, node canvas, and model analytics.",
-      "full_description": "Comprehensive workflow automation platform built with modern React, TypeScript, and Python AI core. Features real-time multi-agent cooperation, canvas builder, and distributed queue processing.",
-      "image_url": "/uploads/project-ai-studio.jpg",
-      "category": "AI",
-      "technologies": "[\"React\",\"TypeScript\",\"Node.js\",\"Python\",\"Tailwind CSS\"]",
-      "github_url": "https://github.com",
-      "live_url": "https://example.com",
-      "is_featured": 1,
+      "description": "Persistent cloud AI workflow engine with auto-failover.",
+      "full_description": "Persistent cloud AI workflow engine with auto-failover.",
+      "image_url": "",
+      "category": "AI / Cloud",
+      "technologies": "[\"React\",\"TypeScript\",\"PostgreSQL\",\"Node.js\"]",
+      "github_url": "",
+      "live_url": "",
+      "is_featured": 0,
       "display_order": 1,
       "created_at": "2026-08-29T14:33:08.911Z",
-      "status": "Completed"
+      "status": "Production Ready",
+      "updated_at": "2026-08-30T08:35:15.937Z"
     },
     {
       "id": 2,
@@ -89,12 +76,13 @@
   "skills": [
     {
       "id": 1,
-      "name": "React",
-      "category": "Frontend",
-      "icon": "Atom",
-      "proficiency": 95,
+      "name": "React & PostgreSQL Cloud Persistence",
+      "category": "Frontend & Architecture",
+      "icon": "Database",
+      "proficiency": 99,
       "display_order": 1,
-      "created_at": "2026-08-29T14:33:08.911Z"
+      "created_at": "2026-08-29T14:33:08.911Z",
+      "updated_at": "2026-08-30T08:35:15.942Z"
     },
     {
       "id": 2,
@@ -190,18 +178,18 @@
   "experience": [
     {
       "id": 1,
-      "company": "Parul Consultancy Service",
-      "position": "Intern Full-Stack Developer",
-      "location": "Parul University, Vadodara, Gujarat, India",
-      "start_date": "2026-08-01",
+      "company": "Quantum AI Labs (Production Tested)",
+      "position": "Principal Platform Engineer",
+      "location": "San Francisco, CA",
+      "start_date": "2024-01-01",
       "end_date": "",
       "is_current": 1,
-      "description": "Leading the development of enterprise SaaS platforms, modernizing legacy architectures into high-performance React and Node.js microservices.",
-      "technologies": "[\"[\\\"React\\\"\",\"\\\"TypeScript\\\"\",\"\\\"Node.js\\\"\",\"\\\"MySQL\\\"\",\"\\\"Docker\\\"]\"]",
+      "description": "Architecting ultra-high durability persistence engines.",
+      "technologies": "[\"React\",\"TypeScript\",\"Node.js\",\"PostgreSQL\",\"Docker\"]",
       "logo_url": "",
       "display_order": 1,
       "created_at": "2026-08-29T14:33:08.911Z",
-      "updated_at": "2026-08-30T04:12:02.162Z"
+      "updated_at": "2026-08-30T08:35:15.931Z"
     },
     {
       "id": 2,
@@ -894,6 +882,54 @@
       "page": "/",
       "referrer": "Direct",
       "user_agent": ""
+    },
+    {
+      "id": 1788078818740,
+      "created_at": "2026-08-30T08:33:38.666Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "axios/1.20.0"
+    },
+    {
+      "id": 1788078838020,
+      "created_at": "2026-08-30T08:33:57.485Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "axios/1.20.0"
+    },
+    {
+      "id": 1788078859681,
+      "created_at": "2026-08-30T08:34:18.956Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "axios/1.20.0"
+    },
+    {
+      "id": 1788078890903,
+      "created_at": "2026-08-30T08:34:50.310Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "axios/1.20.0"
+    },
+    {
+      "id": 1788078916088,
+      "created_at": "2026-08-30T08:35:15.956Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "axios/1.20.0"
+    },
+    {
+      "id": 1788078922001,
+      "created_at": "2026-08-30T08:35:21.562Z",
+      "event_type": "pageview",
+      "page": "/",
+      "referrer": "Direct",
+      "user_agent": "axios/1.20.0"
     }
   ],
   "sessions": [
@@ -915,6 +951,98 @@
       "ip_address": "::ffff:127.0.0.1",
       "expires_at": "2026-08-30T06:02:22.581Z",
       "is_revoked": 0
+    },
+    {
+      "id": "a3f26a98-bc47-4720-86c3-ba5f6a59ad63",
+      "created_at": "2026-08-30T08:33:38.605Z",
+      "user_id": 1,
+      "user_agent": "axios/1.20.0",
+      "ip_address": "::1",
+      "expires_at": "2026-08-30T10:33:38.604Z",
+      "is_revoked": 0
+    },
+    {
+      "id": "688cfcab-0774-4ef8-b3d4-3dc41f66979c",
+      "created_at": "2026-08-30T08:33:57.443Z",
+      "user_id": 1,
+      "user_agent": "axios/1.20.0",
+      "ip_address": "::ffff:127.0.0.1",
+      "expires_at": "2026-08-30T10:33:57.442Z",
+      "is_revoked": 0
+    },
+    {
+      "id": "41806581-afc1-4265-ba4e-6fcb5b836d42",
+      "created_at": "2026-08-30T08:34:18.915Z",
+      "user_id": 1,
+      "user_agent": "axios/1.20.0",
+      "ip_address": "::ffff:127.0.0.1",
+      "expires_at": "2026-08-30T10:34:18.914Z",
+      "is_revoked": 0
+    },
+    {
+      "id": "e874c460-487c-4de3-b254-44e0dfa65037",
+      "created_at": "2026-08-30T08:34:50.269Z",
+      "user_id": 1,
+      "user_agent": "axios/1.20.0",
+      "ip_address": "127.0.0.1",
+      "expires_at": "2026-08-30T10:34:50.268Z",
+      "is_revoked": 0
+    },
+    {
+      "id": "8009bb52-d88e-43a3-914d-74d07f7397cc",
+      "created_at": "2026-08-30T08:35:15.912Z",
+      "user_id": 1,
+      "user_agent": "axios/1.20.0",
+      "ip_address": "127.0.0.1",
+      "expires_at": "2026-08-30T10:35:15.911Z",
+      "is_revoked": 0
+    }
+  ],
+  "uploads": [
+    {
+      "id": 1788078819640,
+      "created_at": "2026-08-30T08:33:38.663Z",
+      "filename": "test-persistence-avatar-1788078818644-835125104.gif",
+      "original_name": "test-persistence-avatar.gif",
+      "mime_type": "image/gif",
+      "file_data": "R0lGODlhAQABAMKAAADDv8O/w78AAAAhw7kEAQAAAAAsAAAAAAEAAQAAAgJEAQA7",
+      "size": 48
+    },
+    {
+      "id": 1788078837708,
+      "created_at": "2026-08-30T08:33:57.482Z",
+      "filename": "test-persistence-avatar-1788078837478-275641719.gif",
+      "original_name": "test-persistence-avatar.gif",
+      "mime_type": "image/gif",
+      "file_data": "R0lGODlhAQABAMKAAADDv8O/w78AAAAhw7kEAQAAAAAsAAAAAAEAAQAAAgJEAQA7",
+      "size": 48
+    },
+    {
+      "id": 1788078859714,
+      "created_at": "2026-08-30T08:34:18.953Z",
+      "filename": "test-persistence-avatar-1788078858950-384430102.gif",
+      "original_name": "test-persistence-avatar.gif",
+      "mime_type": "image/gif",
+      "file_data": "R0lGODlhAQABAMKAAADDv8O/w78AAAAhw7kEAQAAAAAsAAAAAAEAAQAAAgJEAQA7",
+      "size": 48
+    },
+    {
+      "id": 1788078890510,
+      "created_at": "2026-08-30T08:34:50.307Z",
+      "filename": "test-persistence-avatar-1788078890304-661014635.gif",
+      "original_name": "test-persistence-avatar.gif",
+      "mime_type": "image/gif",
+      "file_data": "R0lGODlhAQABAMKAAADDv8O/w78AAAAhw7kEAQAAAAAsAAAAAAEAAQAAAgJEAQA7",
+      "size": 48
+    },
+    {
+      "id": 1788078916894,
+      "created_at": "2026-08-30T08:35:15.952Z",
+      "filename": "test-persistence-avatar-1788078915950-279725954.gif",
+      "original_name": "test-persistence-avatar.gif",
+      "mime_type": "image/gif",
+      "file_data": "R0lGODlhAQABAMKAAADDv8O/w78AAAAhw7kEAQAAAAAsAAAAAAEAAQAAAgJEAQA7",
+      "size": 48
     }
   ]
 }

@@ -2,10 +2,11 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { deleteUploadedFileFromDb, saveUploadedFileToDb } from './database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const uploadDir = path.join(__dirname, '../../uploads');
+export const uploadDir = path.join(__dirname, '../../uploads');
 
 // Ensure upload directory exists
 if (!fs.existsSync(uploadDir)) {
@@ -43,18 +44,23 @@ export const upload = multer({
   fileFilter
 });
 
-// Helper to remove old file safely
-export function deleteFileSafely(fileUrl) {
+// Helper to remove old file safely from both disk and database
+export async function deleteFileSafely(fileUrl) {
   if (!fileUrl || !fileUrl.startsWith('/uploads/')) return;
   const filename = fileUrl.replace('/uploads/', '');
   // Prevent deleting default placeholders
   if (filename.startsWith('default-')) return;
+  
+  // 1. Delete from persistent database
+  await deleteUploadedFileFromDb(filename);
+
+  // 2. Delete from local disk cache if present
   const filePath = path.join(uploadDir, filename);
   if (fs.existsSync(filePath)) {
     try {
       fs.unlinkSync(filePath);
     } catch (e) {
-      console.warn('Failed to delete file:', filePath, e.message);
+      console.warn('Failed to delete file from disk:', filePath, e.message);
     }
   }
 }

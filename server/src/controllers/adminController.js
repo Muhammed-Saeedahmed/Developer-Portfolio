@@ -4,14 +4,23 @@ import { deleteFileSafely } from '../config/upload.js';
 // --- 1. Dashboard Stats & Analytics ---
 export async function getDashboardStats(req, res) {
   try {
-    const [[{ totalProjects }]] = await query('SELECT COUNT(*) as totalProjects FROM projects');
-    const [[{ totalSkills }]] = await query('SELECT COUNT(*) as totalSkills FROM skills');
-    const [[{ totalExperience }]] = await query('SELECT COUNT(*) as totalExperience FROM experience');
-    const [[{ totalEducation }]] = await query('SELECT COUNT(*) as totalEducation FROM education');
-    const [[{ totalMessages }]] = await query('SELECT COUNT(*) as totalMessages FROM messages');
-    const [[{ unreadMessages }]] = await query('SELECT COUNT(*) as unreadMessages FROM messages WHERE is_read = 0');
-    const [[{ totalViews }]] = await query('SELECT COUNT(*) as totalViews FROM analytics WHERE event_type = "pageview"');
-    const [[{ projectClicks }]] = await query('SELECT COUNT(*) as projectClicks FROM analytics WHERE event_type = "project_click"');
+    const [pRes] = await query('SELECT COUNT(*) as totalProjects FROM projects');
+    const [sRes] = await query('SELECT COUNT(*) as totalSkills FROM skills');
+    const [eRes] = await query('SELECT COUNT(*) as totalExperience FROM experience');
+    const [edRes] = await query('SELECT COUNT(*) as totalEducation FROM education');
+    const [mRes] = await query('SELECT COUNT(*) as totalMessages FROM messages');
+    const [umRes] = await query('SELECT COUNT(*) as unreadMessages FROM messages WHERE is_read = 0');
+    const [vRes] = await query("SELECT COUNT(*) as totalViews FROM analytics WHERE event_type = 'pageview'");
+    const [cRes] = await query("SELECT COUNT(*) as projectClicks FROM analytics WHERE event_type = 'project_click'");
+
+    const totalProjects = Number(pRes[0]?.totalProjects ?? pRes[0]?.totalprojects ?? pRes[0]?.count ?? 0);
+    const totalSkills = Number(sRes[0]?.totalSkills ?? sRes[0]?.totalskills ?? sRes[0]?.count ?? 0);
+    const totalExperience = Number(eRes[0]?.totalExperience ?? eRes[0]?.totalexperience ?? eRes[0]?.count ?? 0);
+    const totalEducation = Number(edRes[0]?.totalEducation ?? edRes[0]?.totaleducation ?? edRes[0]?.count ?? 0);
+    const totalMessages = Number(mRes[0]?.totalMessages ?? mRes[0]?.totalmessages ?? mRes[0]?.count ?? 0);
+    const unreadMessages = Number(umRes[0]?.unreadMessages ?? umRes[0]?.unreadmessages ?? umRes[0]?.count ?? 0);
+    const totalViews = Number(vRes[0]?.totalViews ?? vRes[0]?.totalviews ?? vRes[0]?.count ?? 0);
+    const projectClicks = Number(cRes[0]?.projectClicks ?? cRes[0]?.projectclicks ?? cRes[0]?.count ?? 0);
 
     // Recent 7 Days Activity for Recharts
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

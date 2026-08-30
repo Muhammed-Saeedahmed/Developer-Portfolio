@@ -17,6 +17,7 @@ dist/
 *.sqlite
 *.sqlite3
 server/portfolio.db
+server/uploads/
 
 # OS / Editor files
 .DS_Store
