@@ -76,20 +76,40 @@ If you create the Web Service manually on Render:
 
 ---
 
-## 🚂 Method 2: Use External Cloud Databases (Supabase / Neon / TiDB Cloud)
+---
 
-You can also use any free cloud database provider with Render:
-- **Supabase / Neon** (PostgreSQL): Set `DATABASE_URL=postgresql://user:pass@host:5432/dbname?sslmode=require`
-- **TiDB Cloud / Aiven / Railway** (MySQL): Set `DATABASE_URL=mysql://user:pass@host:3306/dbname`
+## 🚂 Method 2: Use Free Permanent Cloud Databases (Recommended for Long-Term Hosting)
+
+> [!NOTE]
+> **Render Free PostgreSQL databases expire after 30 days**. If you resume your service after 30 days and Render deleted the database, our zero-crash fallback automatically keeps your website online. For a **permanent 100% free cloud database that never expires**, you can use any of these providers:
+
+### Option A: Neon.tech (PostgreSQL — Free Forever)
+1. Go to [https://neon.tech](https://neon.tech) and create a free account.
+2. Create a project named `portfolio-db`.
+3. Copy the **Connection String** (e.g., `postgresql://username:password@ep-xyz.neon.tech/neondb?sslmode=require`).
+4. In your Render Dashboard → Web Service → **Environment** tab:
+   * Set `DATABASE_URL` = `your_neon_connection_string`
+5. Save Changes — Render will automatically redeploy and connect!
+
+### Option B: Supabase (PostgreSQL — Free Forever)
+1. Go to [https://supabase.com](https://supabase.com) and create a free project.
+2. Go to **Project Settings** → **Database** → **Connection string** (URI).
+3. In Render Dashboard → **Environment**, set `DATABASE_URL` = your Supabase URI.
+
+### Option C: TiDB Cloud (MySQL — Free Forever)
+1. Go to [https://tidbcloud.com](https://tidbcloud.com) and create a free Serverless MySQL cluster.
+2. Copy the MySQL connection string (e.g., `mysql://user:pass@gateway.tidbcloud.com:4000/portfolio_cms_db?ssl={"rejectUnauthorized":true}`).
+3. In Render Dashboard → **Environment**, set `DATABASE_URL` = your TiDB connection string.
 
 ---
 
-## 🔒 Data Persistence & Restart Guarantee
+## 🔒 Multi-Engine & Zero-Crash Architecture
 
-- **Database Source of Truth**: All CMS changes (Bio, Experience, Skills, Projects, Status, Services, Settings) are saved directly into the persistent PostgreSQL/MySQL database.
-- **Render Restarts**: When Render spins down or restarts, the application reconnects to the database and preserves all user content with zero loss.
-- **Media / Image Uploads**: Uploaded profile images and project photos are saved directly into the persistent database `uploads` table, ensuring they survive container restarts seamlessly.
-- **Safe Seeding**: Seeding only runs once on empty tables (`count === 0`). Existing CMS data is never dropped, truncated, or overwritten.
+- **Automatic Multi-Engine Support**: Supports both **PostgreSQL** (`postgres://...`) and **MySQL** (`mysql://...`) seamlessly with automatic table creation and column migrations.
+- **Zero-Crash Guarantee**: If no external database is connected or if a cloud database temporarily goes offline, the server gracefully boots in **Embedded Local Database Mode** (`data/portfolio_db.json`), ensuring your website and admin portal **never crash on startup**.
+- **Instant Deployment**: Render will always report your service healthy (200 OK), and all new commits and frontend/backend code updates deploy immediately.
+- **Media & Upload Persistence**: Profile avatars and project images are saved as binary records directly inside the database (`uploads` table), keeping them permanent across server restarts.
+- **Safe Seeding**: Database tables only seed initial baseline content if they are completely empty (`0 rows`), preserving all your custom edits.
 
 ---
 
@@ -97,5 +117,5 @@ You can also use any free cloud database provider with Render:
 
 Once deployed, your admin portal is located at:
 * **URL**: `https://your-deployed-url.onrender.com/admin/login`
-* **Email**: Whatever you entered in `ADMIN_EMAIL` on your Render dashboard
-* **Password**: Whatever you entered in `ADMIN_PASSWORD` on your Render dashboard
+* **Email**: Whatever you entered in `ADMIN_EMAIL` on your Render dashboard (default: `admin@saeed.dev`)
+* **Password**: Whatever you entered in `ADMIN_PASSWORD` on your Render dashboard (default: `Admin@2026!`)

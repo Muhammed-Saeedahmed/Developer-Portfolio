@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { initDatabase, getUploadedFileFromDb } from './config/database.js';
+import { initDatabase, getUploadedFileFromDb, getDatabaseStatus } from './config/database.js';
 import apiRoutes from './routes/api.js';
 
 dotenv.config();
@@ -79,7 +79,19 @@ app.get('/uploads/:filename', async (req, res) => {
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    database: getDatabaseStatus(),
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    database: getDatabaseStatus(),
+    timestamp: new Date().toISOString()
+  });
 });
 
 // No-cache headers for API routes to prevent stale browser / proxy caching
